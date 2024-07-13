@@ -11,7 +11,7 @@ import {
   EmailIcon,
   PhoneIcon
 } from '@/components/SocialIcons'
-import logoAirbnb from '@/images/logos/airbnb.svg'
+// import logoAirbnb from '@/images/logos/airbnb.svg'
 import logoYourSpace from '@/images/logos/yourspace.png'
 import logoHubhopper from '@/images/logos/hubhopper.png'
 import logoTalentBrew from '@/images/logos/talentbrew.png'

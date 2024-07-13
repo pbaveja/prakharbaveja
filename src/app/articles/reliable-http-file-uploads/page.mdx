@@ -1,0 +1,317 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const article = {
+  author: 'Prakhar Baveja',
+  date: '2022-11-11',
+  title: 'Reliable HTTP File Uploads',
+  description:
+    'A guide on uploading large files smoothly, even if the internet acts up. It breaks files into chunks and uses AWS S3.',
+}
+
+export const metadata = {
+  title: article.title,
+  description: article.description,
+}
+
+export default (props) => <ArticleLayout article={article} {...props} />
+
+
+# Every half decent application on the web require file uploading. And with data being more and more accessible plus internet speeds improving everywhere, reliable file upload should be a given. Yet, large files often get stuck due to network hiccups or internet issues. In this guide, I'll walk you through a simple and reliable way to upload large files in smaller chunks, making your file uploads more resilient against these common problems.
+
+# Some assumptions: We're using **AWS S3**, and using the frontend to directly upload to S3 securely.
+
+# How do we plan on doing this? S3 Multipart Uploads using presigned URLs
+
+> **Presigned URLs**: We can use presigned URLs to access S3 buckets securely without the need to share or store credentials in the calling application. In addition, presigned URLs are time-limited (the default is 15 minutes) to apply security best practices. [Read more here](https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html)
+
+> **Multipart uploads**: > A multipart upload allows an application to upload a large object as a set of smaller parts uploaded in parallel. Upon completion, S3 combines the smaller pieces into the original larger object. [Read more here](https://aws.amazon.com/blogs/compute/uploading-large-objects-to-amazon-s3-using-multipart-upload-and-transfer-acceleration/)
+
+## Breaking Files into Chunks for Uploading
+
+To handle large files efficiently, we can break them into smaller chunks using the `File.slice` method. This allows us to upload the file in parts, which can be more reliable and manageable.
+
+```javascript
+async function createChunks(file) {
+  const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunk size
+  const chunks = [];
+  let start = 0;
+  let end = CHUNK_SIZE;
+
+  while (start < file.size) {
+    const chunk = file.slice(start, end);
+    chunks.push(chunk);
+
+    start = end;
+    end = start + CHUNK_SIZE;
+  }
+
+  return chunks;
+}
+```
+
+Breaking a file into smaller chunks allows for more manageable and resilient uploads. If an upload fails, you only need to retry the failed chunk instead of the entire file.
+
+## Generating Pre-signed URLs for Each Chunk
+
+Using AWS S3, we can generate pre-signed URLs for each chunk. This allows us to upload each chunk individually with the necessary permissions. Pre-signed URLs are temporary links that grant upload access to a specific part of the file.
+
+> What are AWS S3 presigned urls? [Read about them here](https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/s3-example-presigned-urls.html)
+
+
+```javascript
+async function generatePresignedUrls(s3, uploadId, chunks) {
+  const presignedUrls = [];
+
+  for (let i = 0; i < chunks.length; i++) {
+    const params = {
+      Bucket: BUCKET_NAME,
+      Key: OBJECT_NAME,
+      PartNumber: i + 1,
+      UploadId: uploadId,
+      Expires: 60 * 60 // 1 hour
+    };
+
+    const url = await s3.getSignedUrlPromise('uploadPart', params);
+    presignedUrls.push(url);
+  }
+
+  return presignedUrls;
+}
+```
+
+Pre-signed URLs ensure secure and authorized uploads for each chunk. The `Expires` parameter sets the URL's validity period.
+
+## Uploading Each Chunk
+
+We can use the `fetch` API to upload each chunk to the corresponding pre-signed URL. This ensures that each part of the file is uploaded correctly.
+
+```javascript
+async function uploadChunk(url, chunk, onProgress) {
+  const response = await fetch(url, {
+    method: 'PUT',
+    body: chunk,
+    headers: {
+      'Content-Type': 'application/octet-stream'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to upload chunk: ${response.statusText}`);
+  }
+
+  const etag = response.headers.get('ETag');
+  onProgress(etag);
+}
+```
+
+Using the `fetch` API, we upload each chunk separately. The `Content-Type` header is set to `application/octet-stream` to handle binary data.
+
+## Storing the ETag with the Sequence Number
+
+To keep track of each part, we store the ETag from the response along with its sequence number. ETags are unique identifiers for each uploaded part.
+
+```javascript
+async function uploadChunks(presignedUrls, chunks) {
+  const etags = [];
+
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    const url = presignedUrls[i];
+
+    await uploadChunk(url, chunk, (etag) => {
+      etags[i] = etag;
+    });
+  }
+
+  return etags;
+}
+```
+
+Storing ETags with their sequence numbers ensures that each part is correctly referenced during the final upload completion.
+
+## Completing the Multipart Upload
+
+After uploading all chunks, we need to notify S3 that the upload is complete by sending a complete event with the ETags and sequence numbers.
+
+```javascript
+async function completeUpload(s3, uploadId, etags) {
+  const params = {
+    Bucket: BUCKET_NAME,
+    Key: OBJECT_NAME,
+    UploadId: uploadId,
+    MultipartUpload: {
+      Parts: etags.map((etag, index) => ({
+        PartNumber: index + 1,
+        ETag: etag
+      }))
+    }
+  };
+
+  const res = await s3.completeMultipartUpload(params).promise();
+  return res;
+}
+```
+
+The `completeMultipartUpload` method finalizes the upload by combining all the uploaded parts using their ETags and sequence numbers.
+
+
+## Putting It All Together
+
+Here's a complete example of initiating a multipart upload, breaking a file into chunks, generating pre-signed URLs, uploading each chunk, storing the ETags, and completing the upload.
+
+```javascript
+import AWS from 'aws-sdk';
+
+async function initiateMultipartUpload() {
+  const s3 = new AWS.S3({
+    accessKeyId: YOUR_ACCESS_KEY,
+    secretAccessKey: YOUR_BUCKET_SECRET,
+  });
+
+  const params = {
+    Bucket: BUCKET_NAME,
+    Key: OBJECT_NAME
+  };
+
+  const res = await s3.createMultipartUpload(params).promise();
+  return res.UploadId;
+}
+
+async function createChunks(file) {
+  const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunk size
+  const chunks = [];
+  let start = 0;
+  let end = CHUNK_SIZE;
+
+  while (start < file.size) {
+    const chunk = file.slice(start, end);
+    chunks.push(chunk);
+
+    start = end;
+    end = start + CHUNK_SIZE;
+  }
+
+  return chunks;
+}
+
+async function generatePresignedUrls(s3, uploadId, chunks) {
+  const presignedUrls = [];
+
+  for (let i = 0; i < chunks.length; i++) {
+    const params = {
+      Bucket: BUCKET_NAME,
+      Key: OBJECT_NAME,
+      PartNumber: i + 1,
+      UploadId: uploadId,
+      Expires: 60 * 60 // 1 hour
+    };
+
+    const url = await s3.getSignedUrlPromise('uploadPart', params);
+    presignedUrls.push(url);
+  }
+
+  return presignedUrls;
+}
+
+async function uploadChunk(url, chunk, onProgress) {
+  const response = await fetch(url, {
+    method: 'PUT',
+    body: chunk,
+    headers: {
+      'Content-Type': 'application/octet-stream'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to upload chunk: ${response.statusText}`);
+  }
+
+  const etag = response.headers.get('ETag');
+  onProgress(etag);
+}
+
+async function uploadChunks(presignedUrls, chunks) {
+  const etags = [];
+
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    const url = presignedUrls[i];
+
+    await uploadChunk(url, chunk, (etag) => {
+      etags[i] = etag;
+    });
+  }
+
+  return etags;
+}
+
+async function completeUpload(s3, uploadId, etags) {
+  const params = {
+    Bucket: BUCKET_NAME,
+    Key: OBJECT_NAME,
+    UploadId: uploadId,
+    MultipartUpload: {
+      Parts: etags.map((etag, index) => ({
+        PartNumber: index + 1,
+        ETag: etag
+      }))
+    }
+  };
+
+  const res = await s3.completeMultipartUpload(params).promise();
+  return res;
+}
+
+async function uploadFile(file) {
+  const s3 = new AWS.S3({
+    accessKeyId: YOUR_ACCESS_KEY,
+    secretAccessKey: YOUR_BUCKET_SECRET,
+  });
+
+  const uploadId = await initiateMultipartUpload();
+  const chunks = await createChunks(file);
+  const presignedUrls = await generatePresignedUrls(s3, uploadId, chunks);
+  const etags = await uploadChunks(presignedUrls, chunks);
+  const res = await completeUpload(s3, uploadId, etags);
+
+  return res;
+}
+```
+
+## Upload Form Component
+
+To use the `uploadFile` function, you can create a React component with a file input and upload button.
+
+```javascript
+import React, { useState } from 'react';
+
+function UploadForm() {
+  const [file, setFile] = useState(null);
+
+  const handleFileChange = (event) => {
+    setFile(event.target.files[0]);
+  };
+
+  const handleUpload = async () => {
+    try {
+      await uploadFile(file);
+      console.log('File uploaded successfully');
+    } catch (error) {
+      console.error('Failed to upload file:', error);
+    }
+  };
+
+  return (
+    <div>
+      <input type="file" onChange={handleFileChange} />
+      <button onClick={handleUpload} disabled={!file}>Upload</button>
+    </div>
+  );
+}
+```
+
+This form allows users to select a file and upload it to S3 in parts using the `uploadFile` function. When the upload is complete, a success message is logged to the console.
+
+## Conclusion
+
+By breaking a file into chunks, generating pre-signed URLs, and uploading each chunk separately, we can reliably upload large files to S3. This approach ensures efficient and reliable file uploads, even for very large files. Make sure you have your AWS credentials set up and your S3 bucket configured to use this code effectively.

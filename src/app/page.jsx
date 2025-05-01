@@ -11,7 +11,7 @@ import {
   EmailIcon,
   PhoneIcon
 } from '@/components/SocialIcons'
-// import logoAirbnb from '@/images/logos/airbnb.svg'
+import logoGoogle from '@/images/logos/google.svg'
 import logoYourSpace from '@/images/logos/yourspace.png'
 import logoHubhopper from '@/images/logos/hubhopper.png'
 import logoTalentBrew from '@/images/logos/talentbrew.png'
@@ -174,14 +174,21 @@ function Role({ role }) {
 function Resume() {
   let resume = [
     {
-      company: 'Hubhopper',
-      title: 'Tech Lead',
-      logo: logoHubhopper,
-      start: '2019',
+      company: 'Google',
+      title: 'Software Engineer',
+      logo: logoGoogle,
+      start: '2025',
       end: {
         label: 'Present',
         dateTime: new Date().getFullYear().toString(),
       },
+    },
+    {
+      company: 'Hubhopper',
+      title: 'Software Engineer -> Head of Tech',
+      logo: logoHubhopper,
+      start: '2019',
+      end: '2025',
     },
     {
       company: 'Talent Brew',

@@ -2,3 +2,12 @@
 @import 'tailwindcss/components';
 @import './prism.css';
 @import 'tailwindcss/utilities';
+
+/* @uiw/react-md-editor's plain (non-highlighted) text color falls back to an
+   undefined --color-fg-default in write mode, which some browsers render as
+   a washed-out gray. Force it black in the Studio editor. */
+.studio-md-editor .w-md-editor,
+.studio-md-editor .w-md-editor-text-pre,
+.studio-md-editor .w-md-editor-text-pre > * {
+  color: #000 !important;
+}

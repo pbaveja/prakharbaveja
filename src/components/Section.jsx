@@ -6,7 +6,7 @@ export function Section({ title, children }) {
   return (
     <section
       aria-labelledby={id}
-      className="md:border-l-2 md:border-zinc-900 md:pl-6 md:dark:border-zinc-100"
+      className="md:border-l-2 md:border-black md:pl-6 md:dark:border-white"
     >
       <div className="grid max-w-3xl grid-cols-1 items-baseline gap-y-8 md:grid-cols-4">
         <h2

@@ -79,9 +79,20 @@ function MoonIcon(props) {
 }
 
 function MobileNavItem({ href, children }) {
+  let isActive = usePathname() === href
+
   return (
     <li>
-      <PopoverButton as={Link} href={href} className="block py-2">
+      <PopoverButton
+        as={Link}
+        href={href}
+        className={clsx(
+          'block px-3 py-3 font-medium transition',
+          isActive
+            ? 'bg-blue-600 text-white dark:bg-blue-500 dark:text-black'
+            : 'hover:bg-highlight hover:text-black',
+        )}
+      >
         {children}
       </PopoverButton>
     </li>
@@ -91,7 +102,7 @@ function MobileNavItem({ href, children }) {
 function MobileNavigation(props) {
   return (
     <Popover {...props}>
-      <PopoverButton className="group flex items-center rounded-md border-2 border-zinc-900 bg-white px-4 py-2 text-sm font-medium text-zinc-800 shadow-brutal-sm transition hover:-translate-x-px hover:-translate-y-px hover:shadow-brutal dark:border-zinc-100 dark:bg-zinc-800 dark:text-zinc-200 dark:shadow-brutal-sm-dark dark:hover:shadow-brutal-dark">
+      <PopoverButton className="group flex items-center rounded-none border-2 border-black bg-white px-4 py-2 text-sm font-medium text-black shadow-brutal-sm transition hover:-translate-x-px hover:-translate-y-px hover:shadow-brutal dark:border-white dark:bg-zinc-800 dark:text-white dark:shadow-brutal-sm-dark dark:hover:shadow-brutal-dark">
         Menu
         <ChevronDownIcon className="ml-3 h-auto w-2 stroke-zinc-500 group-hover:stroke-zinc-700 dark:group-hover:stroke-zinc-400" />
       </PopoverButton>
@@ -102,7 +113,7 @@ function MobileNavigation(props) {
       <PopoverPanel
         focus
         transition
-        className="fixed inset-x-4 top-8 z-50 origin-top rounded-md border-2 border-zinc-900 bg-white p-8 shadow-brutal duration-150 data-[closed]:scale-95 data-[closed]:opacity-0 data-[enter]:ease-out data-[leave]:ease-in dark:border-zinc-100 dark:bg-zinc-900 dark:shadow-brutal-dark"
+        className="fixed inset-x-4 top-8 z-50 origin-top rounded-none border-2 border-black bg-white p-8 shadow-brutal duration-150 data-[closed]:scale-95 data-[closed]:opacity-0 data-[enter]:ease-out data-[leave]:ease-in dark:border-white dark:bg-ink dark:shadow-brutal-dark"
       >
         <div className="flex flex-row-reverse items-center justify-between">
           <PopoverButton aria-label="Close menu" className="-m-1 p-1">
@@ -113,7 +124,7 @@ function MobileNavigation(props) {
           </h2>
         </div>
         <nav className="mt-6">
-          <ul className="-my-2 divide-y divide-zinc-100 text-base text-zinc-800 dark:divide-zinc-100/5 dark:text-zinc-300">
+          <ul className="-my-2 divide-y-2 divide-black border-2 border-black text-base text-black dark:divide-white dark:border-white dark:text-white">
             <MobileNavItem href="/">Home</MobileNavItem>
             <MobileNavItem href="/articles">Articles</MobileNavItem>
             <MobileNavItem href="/projects">Projects</MobileNavItem>
@@ -135,16 +146,13 @@ function NavItem({ href, children }) {
       <Link
         href={href}
         className={clsx(
-          'relative block px-3 py-2 transition',
+          'block px-4 py-2 font-medium transition',
           isActive
-            ? 'text-blue-500 dark:text-blue-400'
-            : 'hover:text-blue-500 dark:hover:text-blue-400',
+            ? 'bg-blue-600 text-white dark:bg-blue-500 dark:text-black'
+            : 'text-black hover:bg-black hover:text-white dark:text-white dark:hover:bg-white dark:hover:text-black',
         )}
       >
         {children}
-        {isActive && (
-          <span className="absolute inset-x-1 -bottom-px h-px bg-gradient-to-r from-blue-500/0 via-blue-500/40 to-blue-500/0 dark:from-blue-400/0 dark:via-blue-400/40 dark:to-blue-400/0" />
-        )}
       </Link>
     </li>
   )
@@ -153,7 +161,7 @@ function NavItem({ href, children }) {
 function DesktopNavigation(props) {
   return (
     <nav {...props}>
-      <ul className="flex rounded-md border-2 border-zinc-900 bg-white px-3 text-sm font-medium text-zinc-800 shadow-brutal-sm dark:border-zinc-100 dark:bg-zinc-800 dark:text-zinc-200 dark:shadow-brutal-sm-dark">
+      <ul className="flex divide-x-2 divide-black rounded-none border-2 border-black bg-white text-sm shadow-brutal-sm dark:divide-white dark:border-white dark:bg-ink">
         <NavItem href="/">Home</NavItem>
         <NavItem href="/articles">Articles</NavItem>
         <NavItem href="/projects">Projects</NavItem>
@@ -178,7 +186,7 @@ function ThemeToggle() {
     <button
       type="button"
       aria-label={mounted ? `Switch to ${otherTheme} theme` : 'Toggle theme'}
-      className="group rounded-md border-2 border-zinc-900 bg-white px-3 py-2 shadow-brutal-sm transition hover:-translate-x-px hover:-translate-y-px hover:shadow-brutal dark:border-zinc-100 dark:bg-zinc-800 dark:shadow-brutal-sm-dark dark:hover:shadow-brutal-dark"
+      className="group rounded-none border-2 border-black bg-white px-3 py-2 shadow-brutal-sm transition hover:-translate-x-px hover:-translate-y-px hover:shadow-brutal dark:border-white dark:bg-zinc-800 dark:shadow-brutal-sm-dark dark:hover:shadow-brutal-dark"
       onClick={() => setTheme(otherTheme)}
     >
       <SunIcon className="h-6 w-6 fill-zinc-100 stroke-zinc-500 transition group-hover:fill-zinc-200 group-hover:stroke-zinc-700 dark:hidden [@media(prefers-color-scheme:dark)]:fill-blue-50 [@media(prefers-color-scheme:dark)]:stroke-blue-500 [@media(prefers-color-scheme:dark)]:group-hover:fill-blue-50 [@media(prefers-color-scheme:dark)]:group-hover:stroke-blue-600" />
@@ -198,7 +206,7 @@ function AvatarContainer({ className, ...props }) {
     <div
       className={clsx(
         className,
-        'h-10 w-10 rounded-full border-2 border-zinc-900 bg-white p-0.5 shadow-brutal-sm dark:border-zinc-100 dark:bg-zinc-800 dark:shadow-brutal-sm-dark',
+        'h-10 w-10 rounded-none border-2 border-black bg-white p-0.5 shadow-brutal-sm dark:border-white dark:bg-zinc-800 dark:shadow-brutal-sm-dark',
       )}
       {...props}
     />
@@ -220,7 +228,7 @@ function Avatar({ large = false, className, ...props }) {
         alt=""
         sizes={large ? '4rem' : '2.25rem'}
         className={clsx(
-          'rounded-full bg-zinc-100 object-cover dark:bg-zinc-800 dark:ring-1 dark:ring-slate-400/20',
+          'rounded-none bg-zinc-100 object-cover dark:bg-zinc-800',
           large ? 'h-16 w-16' : 'h-9 w-9',
         )}
         priority

@@ -5,6 +5,9 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
 
+import '@uiw/react-md-editor/markdown-editor.css'
+import '@uiw/react-markdown-preview/markdown.css'
+
 import { Button } from '@/components/Button'
 import { Prose } from '@/components/Prose'
 import { slugify } from '@/lib/articleFile'
@@ -162,7 +165,7 @@ export function ArticleEditor({ mode, slug: initialSlug, sha, initialValues }) {
         </div>
 
         {tab === 'write' ? (
-          <div data-color-mode="light" className="mt-3">
+          <div data-color-mode="light" className="studio-md-editor mt-3">
             <MDEditor value={body} onChange={setBody} height={480} preview="edit" />
           </div>
         ) : (

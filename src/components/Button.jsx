@@ -10,7 +10,7 @@ const variantStyles = {
 
 export function Button({ variant = 'primary', className, ...props }) {
   className = clsx(
-    'inline-flex items-center gap-2 justify-center rounded-md border-2 border-zinc-900 py-2 px-3 text-sm outline-offset-2 shadow-brutal-sm transition active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:pointer-events-none disabled:opacity-50 dark:border-zinc-100 dark:shadow-brutal-sm-dark',
+    'inline-flex items-center gap-2 justify-center rounded-none border-2 border-black py-2 px-3 text-sm outline-offset-2 shadow-brutal transition active:translate-x-1 active:translate-y-1 active:shadow-none disabled:pointer-events-none disabled:opacity-50 dark:border-white dark:shadow-brutal-dark',
     variantStyles[variant],
     className,
   )

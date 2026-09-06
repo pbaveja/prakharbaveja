@@ -21,7 +21,7 @@ export function Card({ as, className, children }) {
     <Component
       className={clsx(
         className,
-        'group relative flex flex-col items-start rounded-md border-2 border-zinc-900 bg-white p-6 shadow-brutal-sm transition hover:-translate-x-px hover:-translate-y-px hover:shadow-brutal dark:border-zinc-100 dark:bg-zinc-900 dark:shadow-brutal-sm-dark dark:hover:shadow-brutal-dark',
+        'group relative flex flex-col items-start rounded-none border-2 border-black bg-white p-6 shadow-brutal-sm transition hover:-translate-x-px hover:-translate-y-px hover:shadow-brutal dark:border-white dark:bg-zinc-900 dark:shadow-brutal-sm-dark dark:hover:shadow-brutal-dark',
       )}
     >
       {children}
@@ -42,7 +42,7 @@ Card.Title = function CardTitle({ as, href, children }) {
   let Component = as ?? 'h2'
 
   return (
-    <Component className="text-base font-semibold tracking-tight text-zinc-800 dark:text-zinc-100">
+    <Component className="text-base font-bold tracking-tight text-black dark:text-white">
       {href ? <Card.Link href={href}>{children}</Card.Link> : children}
     </Component>
   )
@@ -60,7 +60,7 @@ Card.Cta = function CardCta({ children }) {
   return (
     <div
       aria-hidden="true"
-      className="relative z-10 mt-4 flex items-center text-sm font-medium text-blue-500"
+      className="relative z-10 mt-4 flex items-center text-sm font-medium text-blue-600 dark:text-blue-400"
     >
       {children}
       <ChevronRightIcon className="ml-1 h-4 w-4 stroke-current" />

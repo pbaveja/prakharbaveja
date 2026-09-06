@@ -34,14 +34,14 @@ export function ArticleLayout({ article, children }) {
               type="button"
               onClick={() => router.back()}
               aria-label="Go back to articles"
-              className="group mb-8 flex h-10 w-10 items-center justify-center rounded-full border-2 border-zinc-900 bg-white shadow-brutal-sm transition hover:-translate-x-px hover:-translate-y-px hover:shadow-brutal lg:absolute lg:-left-5 lg:-mt-2 lg:mb-0 xl:-top-1.5 xl:left-0 xl:mt-0 dark:border-zinc-100 dark:bg-zinc-800 dark:shadow-brutal-sm-dark dark:hover:shadow-brutal-dark"
+              className="group mb-8 flex h-10 w-10 items-center justify-center rounded-full border-2 border-black bg-white shadow-brutal-sm transition hover:-translate-x-px hover:-translate-y-px hover:shadow-brutal lg:absolute lg:-left-5 lg:-mt-2 lg:mb-0 xl:-top-1.5 xl:left-0 xl:mt-0 dark:border-white dark:bg-zinc-800 dark:shadow-brutal-sm-dark dark:hover:shadow-brutal-dark"
             >
               <ArrowLeftIcon className="h-4 w-4 stroke-zinc-500 transition group-hover:stroke-zinc-700 dark:stroke-zinc-500 dark:group-hover:stroke-zinc-400" />
             </button>
           )}
           <article>
             <header className="flex flex-col">
-              <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-zinc-800 sm:text-5xl dark:text-zinc-100">
+              <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-black sm:text-5xl dark:text-white">
                 {article.title}
               </h1>
               <time

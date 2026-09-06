@@ -1,0 +1,21 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const article = {
+  author: "Prakhar Baveja",
+  date: "2026-09-06",
+  title: "Lets test this out",
+  description: "Will this work?",
+}
+
+export const metadata = {
+  title: article.title,
+  description: article.description,
+}
+
+export default (props) => <ArticleLayout article={article} {...props} />
+
+## Some cool heading
+
+I need to fix the font colour of the normal body text oops...
+
+`some code wow function_call()`

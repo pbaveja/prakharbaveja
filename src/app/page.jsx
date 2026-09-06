@@ -100,7 +100,7 @@ function Article({ article }) {
 function SocialLink({ icon: Icon, ...props }) {
   return (
     <Link className="group -m-1 p-1" {...props}>
-      <Icon className="h-6 w-6 fill-zinc-500 transition group-hover:fill-zinc-600 dark:fill-zinc-400 dark:group-hover:fill-zinc-300" />
+      <Icon className="h-6 w-6 fill-zinc-500 transition group-hover:fill-blue-600 dark:fill-zinc-400 dark:group-hover:fill-blue-400" />
     </Link>
   )
 }
@@ -109,9 +109,9 @@ function Newsletter() {
   return (
     <form
       action="/thank-you"
-      className="rounded-2xl border border-zinc-100 p-6 dark:border-zinc-700/40"
+      className="rounded-none border-2 border-black p-6 shadow-brutal-sm dark:border-white dark:shadow-brutal-sm-dark"
     >
-      <h2 className="flex text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+      <h2 className="flex text-sm font-bold text-black dark:text-white">
         <MailIcon className="h-6 w-6 flex-none" />
         <span className="ml-3">Stay up to date</span>
       </h2>
@@ -124,7 +124,7 @@ function Newsletter() {
           placeholder="Email address"
           aria-label="Email address"
           required
-          className="min-w-0 flex-auto appearance-none rounded-md border border-zinc-900/10 bg-white px-3 py-[calc(theme(spacing.2)-1px)] shadow-md shadow-zinc-800/5 placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-4 focus:ring-teal-500/10 sm:text-sm dark:border-zinc-700 dark:bg-zinc-700/[0.15] dark:text-zinc-200 dark:placeholder:text-zinc-500 dark:focus:border-teal-400 dark:focus:ring-teal-400/10"
+          className="min-w-0 flex-auto appearance-none rounded-none border-2 border-black bg-white px-3 py-[calc(theme(spacing.2)-1px)] placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-600 sm:text-sm dark:border-white dark:bg-zinc-800 dark:text-zinc-200 dark:placeholder:text-zinc-500"
         />
         <Button type="submit" className="ml-4 flex-none">
           Join
@@ -144,29 +144,29 @@ function Role({ role }) {
   let endDate = typeof role.end === 'string' ? role.end : role.end.dateTime
 
   return (
-    <li className="flex gap-4">
-      <div className="relative mt-1 flex h-10 w-10 flex-none items-center justify-center rounded-full shadow-md shadow-zinc-800/5 ring-1 ring-zinc-900/5 dark:border dark:border-zinc-700/50 dark:bg-zinc-800 dark:ring-0">
-        <Image src={role.logo} alt="" className="h-7 w-7" unoptimized />
+    <li className="grid grid-cols-[auto_1fr_auto] items-center gap-x-3 border-b-2 border-black py-3 last:border-b-0 dark:border-white">
+      <div className="flex h-8 w-8 flex-none items-center justify-center border-2 border-black bg-white dark:border-white dark:bg-zinc-800">
+        <Image src={role.logo} alt="" className="h-5 w-5" unoptimized />
       </div>
-      <dl className="flex flex-auto flex-wrap gap-x-2">
+      <dl className="min-w-0">
         <dt className="sr-only">Company</dt>
-        <dd className="w-full flex-none text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <dd className="truncate text-sm font-bold text-black dark:text-white">
           {role.company}
         </dd>
         <dt className="sr-only">Role</dt>
-        <dd className="text-xs text-zinc-500 dark:text-zinc-400">
+        <dd className="truncate text-xs text-zinc-500 dark:text-zinc-400">
           {role.title}
         </dd>
-        <dt className="sr-only">Date</dt>
-        <dd
-          className="ml-auto text-xs text-zinc-400 dark:text-zinc-500"
-          aria-label={`${startLabel} until ${endLabel}`}
-        >
-          <time dateTime={startDate}>{startLabel}</time>{' '}
-          <span aria-hidden="true">—</span>{' '}
-          <time dateTime={endDate}>{endLabel}</time>
-        </dd>
       </dl>
+      <dt className="sr-only">Date</dt>
+      <dd
+        className="flex-none whitespace-nowrap text-xs text-zinc-500 dark:text-zinc-400"
+        aria-label={`${startLabel} until ${endLabel}`}
+      >
+        <time dateTime={startDate}>{startLabel}</time>{' '}
+        <span aria-hidden="true">–</span>{' '}
+        <time dateTime={endDate}>{endLabel}</time>
+      </dd>
     </li>
   )
 }
@@ -210,19 +210,19 @@ function Resume() {
   ]
 
   return (
-    <div className="rounded-2xl border border-zinc-100 p-6 dark:border-zinc-700/40">
-      <h2 className="flex text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+    <div className="rounded-none border-2 border-black p-6 shadow-brutal-sm dark:border-white dark:shadow-brutal-sm-dark">
+      <h2 className="flex text-sm font-bold text-black dark:text-white">
         <BriefcaseIcon className="h-6 w-6 flex-none" />
         <span className="ml-3">Work</span>
       </h2>
-      <ol className="mt-6 space-y-4">
+      <ol className="mt-6">
         {resume.map((role, roleIndex) => (
           <Role key={roleIndex} role={role} />
         ))}
       </ol>
-      <Button href="https://cv.prakharbaveja.com" variant="secondary" className="group mt-6 w-full border-2 border-slate-100 shadow-sm dark:border-neutral-800">
+      <Button href="https://cv.prakharbaveja.com" className="group mt-6 w-full">
         Download CV
-        <ArrowDownIcon className="h-4 w-4 stroke-zinc-400 transition group-active:stroke-zinc-600 dark:group-hover:stroke-zinc-50 dark:group-active:stroke-zinc-50" />
+        <ArrowDownIcon className="h-4 w-4 stroke-zinc-300 transition group-active:stroke-zinc-100 dark:stroke-zinc-400" />
       </Button>
     </div>
   )
@@ -261,17 +261,30 @@ export default async function Home() {
   return (
     <>
       <Container className="mt-9">
-        <div className="max-w-2xl">
-          <h1 className="text-4xl font-bold tracking-tight text-zinc-800 sm:text-5xl dark:text-zinc-100">
+        <div className="max-w-4xl">
+          <h1 className="text-4xl font-extrabold tracking-tight text-black sm:text-5xl dark:text-white">
             Prakhar Baveja
           </h1>
-          <p className="mt-6 text-base text-zinc-600 dark:text-zinc-400">
-            Welcome to my corner on the web.
-          </p>
-          <p className="mt-2 text-base text-zinc-600 dark:text-zinc-400">
-            Here you can find some of my work with the technologies used to create them.
-            Be it a SaaS, RESTful API or an elegant box-shadow, I can help you craft it!
-          </p>
+          <div className="mt-8 text-base">
+            <p>
+              <span className="text-blue-600 dark:text-blue-400">$</span>{' '}
+              <span className="text-zinc-500 dark:text-zinc-500">
+                cat tldr.md
+              </span>
+            </p>
+            <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+              Welcome to my corner on the web.
+            </p>
+            <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+              This is where I write about the software I build, the bugs
+              that humble me, and what I learn along the way — mostly
+              it&apos;s the output of my brain working through side
+              projects, stray technical obsessions, and ideas that
+              wouldn&apos;t leave me alone, plus the occasional whimsical
+              detour into why the world works the way it does, and how much
+              of that comes down to the tech we built to get here.
+            </p>
+          </div>
           <div className="mt-6 flex gap-6">
             {/* <SocialLink href="#" aria-label="Follow on X" icon={XIcon} /> */}
             <SocialLink

@@ -1,7 +1,14 @@
+import { JetBrains_Mono } from 'next/font/google'
+
 import { Providers } from '@/app/providers'
 import { Layout } from '@/components/Layout'
 
 import '@/styles/tailwind.css'
+
+const jetBrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
+})
 
 export const metadata = {
   title: {
@@ -20,8 +27,12 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
-      <body className="flex h-full bg-zinc-50 dark:bg-black">
+    <html
+      lang="en"
+      className={`h-full antialiased ${jetBrainsMono.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="flex h-full bg-paper dark:bg-ink">
         <Providers>
           <div className="flex w-full">
             <Layout>{children}</Layout>

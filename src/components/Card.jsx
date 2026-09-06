@@ -19,7 +19,10 @@ export function Card({ as, className, children }) {
 
   return (
     <Component
-      className={clsx(className, 'group relative flex flex-col items-start')}
+      className={clsx(
+        className,
+        'group relative flex flex-col items-start rounded-none border-2 border-black bg-white p-6 shadow-brutal-sm transition hover:-translate-x-px hover:-translate-y-px hover:shadow-brutal dark:border-white dark:bg-zinc-900 dark:shadow-brutal-sm-dark dark:hover:shadow-brutal-dark',
+      )}
     >
       {children}
     </Component>
@@ -28,13 +31,10 @@ export function Card({ as, className, children }) {
 
 Card.Link = function CardLink({ children, ...props }) {
   return (
-    <>
-      <div className="absolute -inset-x-4 -inset-y-6 z-0 scale-95 bg-zinc-50 opacity-0 transition group-hover:scale-100 group-hover:opacity-100 sm:-inset-x-6 sm:rounded-2xl dark:bg-zinc-800/50" />
-      <Link {...props}>
-        <span className="absolute -inset-x-4 -inset-y-6 z-20 sm:-inset-x-6 sm:rounded-2xl" />
-        <span className="relative z-10">{children}</span>
-      </Link>
-    </>
+    <Link {...props}>
+      <span className="absolute inset-0 z-20" />
+      <span className="relative z-10">{children}</span>
+    </Link>
   )
 }
 
@@ -42,7 +42,7 @@ Card.Title = function CardTitle({ as, href, children }) {
   let Component = as ?? 'h2'
 
   return (
-    <Component className="text-base font-semibold tracking-tight text-zinc-800 dark:text-zinc-100">
+    <Component className="text-base font-bold tracking-tight text-black dark:text-white">
       {href ? <Card.Link href={href}>{children}</Card.Link> : children}
     </Component>
   )
@@ -60,7 +60,7 @@ Card.Cta = function CardCta({ children }) {
   return (
     <div
       aria-hidden="true"
-      className="relative z-10 mt-4 flex items-center text-sm font-medium text-blue-500"
+      className="relative z-10 mt-4 flex items-center text-sm font-medium text-blue-600 dark:text-blue-400"
     >
       {children}
       <ChevronRightIcon className="ml-1 h-4 w-4 stroke-current" />

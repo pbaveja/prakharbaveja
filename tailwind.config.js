@@ -8,6 +8,26 @@ module.exports = {
   darkMode: 'selector',
   plugins: [typographyPlugin],
   theme: {
+    fontFamily: {
+      sans: [
+        'var(--font-jetbrains-mono)',
+        'ui-monospace',
+        'SFMono-Regular',
+        'Menlo',
+        'Monaco',
+        'Consolas',
+        'monospace',
+      ],
+      mono: [
+        'var(--font-jetbrains-mono)',
+        'ui-monospace',
+        'SFMono-Regular',
+        'Menlo',
+        'Monaco',
+        'Consolas',
+        'monospace',
+      ],
+    },
     fontSize: {
       xs: ['0.8125rem', { lineHeight: '1.5rem' }],
       sm: ['0.875rem', { lineHeight: '1.5rem' }],
@@ -24,5 +44,18 @@ module.exports = {
       '9xl': ['8rem', { lineHeight: '1' }],
     },
     typography: typographyStyles,
+    extend: {
+      colors: {
+        paper: '#F9F8F6',
+        ink: '#111110',
+        highlight: '#FFE600',
+      },
+      boxShadow: {
+        brutal: '4px 4px 0 0 #000000',
+        'brutal-dark': '4px 4px 0 0 #ffffff',
+        'brutal-sm': '2px 2px 0 0 #000000',
+        'brutal-sm-dark': '2px 2px 0 0 #ffffff',
+      },
+    },
   },
 }

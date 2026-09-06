@@ -109,7 +109,7 @@ function Newsletter() {
   return (
     <form
       action="/thank-you"
-      className="rounded-2xl border border-zinc-100 p-6 dark:border-zinc-700/40"
+      className="rounded-md border-2 border-zinc-900 p-6 shadow-brutal-sm dark:border-zinc-100 dark:shadow-brutal-sm-dark"
     >
       <h2 className="flex text-sm font-semibold text-zinc-900 dark:text-zinc-100">
         <MailIcon className="h-6 w-6 flex-none" />
@@ -124,7 +124,7 @@ function Newsletter() {
           placeholder="Email address"
           aria-label="Email address"
           required
-          className="min-w-0 flex-auto appearance-none rounded-md border border-zinc-900/10 bg-white px-3 py-[calc(theme(spacing.2)-1px)] shadow-md shadow-zinc-800/5 placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-4 focus:ring-teal-500/10 sm:text-sm dark:border-zinc-700 dark:bg-zinc-700/[0.15] dark:text-zinc-200 dark:placeholder:text-zinc-500 dark:focus:border-teal-400 dark:focus:ring-teal-400/10"
+          className="min-w-0 flex-auto appearance-none rounded-md border-2 border-zinc-900 bg-white px-3 py-[calc(theme(spacing.2)-1px)] placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm dark:border-zinc-100 dark:bg-zinc-800 dark:text-zinc-200 dark:placeholder:text-zinc-500"
         />
         <Button type="submit" className="ml-4 flex-none">
           Join
@@ -145,7 +145,7 @@ function Role({ role }) {
 
   return (
     <li className="flex gap-4">
-      <div className="relative mt-1 flex h-10 w-10 flex-none items-center justify-center rounded-full shadow-md shadow-zinc-800/5 ring-1 ring-zinc-900/5 dark:border dark:border-zinc-700/50 dark:bg-zinc-800 dark:ring-0">
+      <div className="relative mt-1 flex h-10 w-10 flex-none items-center justify-center rounded-full border-2 border-zinc-900 bg-white shadow-brutal-sm dark:border-zinc-100 dark:bg-zinc-800 dark:shadow-brutal-sm-dark">
         <Image src={role.logo} alt="" className="h-7 w-7" unoptimized />
       </div>
       <dl className="flex flex-auto flex-wrap gap-x-2">
@@ -210,7 +210,7 @@ function Resume() {
   ]
 
   return (
-    <div className="rounded-2xl border border-zinc-100 p-6 dark:border-zinc-700/40">
+    <div className="rounded-md border-2 border-zinc-900 p-6 shadow-brutal-sm dark:border-zinc-100 dark:shadow-brutal-sm-dark">
       <h2 className="flex text-sm font-semibold text-zinc-900 dark:text-zinc-100">
         <BriefcaseIcon className="h-6 w-6 flex-none" />
         <span className="ml-3">Work</span>
@@ -220,7 +220,7 @@ function Resume() {
           <Role key={roleIndex} role={role} />
         ))}
       </ol>
-      <Button href="https://cv.prakharbaveja.com" variant="secondary" className="group mt-6 w-full border-2 border-slate-100 shadow-sm dark:border-neutral-800">
+      <Button href="https://cv.prakharbaveja.com" variant="secondary" className="group mt-6 w-full">
         Download CV
         <ArrowDownIcon className="h-4 w-4 stroke-zinc-400 transition group-active:stroke-zinc-600 dark:group-hover:stroke-zinc-50 dark:group-active:stroke-zinc-50" />
       </Button>
@@ -262,7 +262,7 @@ export default async function Home() {
     <>
       <Container className="mt-9">
         <div className="max-w-2xl">
-          <h1 className="text-4xl font-bold tracking-tight text-zinc-800 sm:text-5xl dark:text-zinc-100">
+          <h1 className="text-4xl font-extrabold tracking-tight text-zinc-800 sm:text-5xl dark:text-zinc-100">
             Prakhar Baveja
           </h1>
           <p className="mt-6 text-base text-zinc-600 dark:text-zinc-400">

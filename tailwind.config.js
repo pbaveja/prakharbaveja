@@ -24,5 +24,13 @@ module.exports = {
       '9xl': ['8rem', { lineHeight: '1' }],
     },
     typography: typographyStyles,
+    extend: {
+      boxShadow: {
+        brutal: '4px 4px 0 0 #18181b',
+        'brutal-dark': '4px 4px 0 0 #f4f4f5',
+        'brutal-sm': '2px 2px 0 0 #18181b',
+        'brutal-sm-dark': '2px 2px 0 0 #f4f4f5',
+      },
+    },
   },
 }

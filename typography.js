@@ -35,13 +35,13 @@ module.exports = function typographyStyles({ theme }) {
         '--tw-prose-counters': theme('colors.zinc.900'),
         '--tw-prose-bullets': theme('colors.zinc.900'),
         '--tw-prose-hr': theme('colors.zinc.100'),
-        '--tw-prose-quote-borders': theme('colors.zinc.200'),
+        '--tw-prose-quote-borders': theme('colors.zinc.900'),
         '--tw-prose-captions': theme('colors.zinc.400'),
         '--tw-prose-code': theme('colors.zinc.700'),
         '--tw-prose-code-bg': theme('colors.zinc.300 / 0.2'),
         '--tw-prose-pre-code': theme('colors.zinc.100'),
         '--tw-prose-pre-bg': theme('colors.zinc.900'),
-        '--tw-prose-pre-border': 'transparent',
+        '--tw-prose-pre-border': theme('colors.zinc.900'),
         '--tw-prose-th-borders': theme('colors.zinc.200'),
         '--tw-prose-td-borders': theme('colors.zinc.100'),
 
@@ -55,13 +55,13 @@ module.exports = function typographyStyles({ theme }) {
         '--tw-prose-invert-counters': theme('colors.zinc.200'),
         '--tw-prose-invert-bullets': theme('colors.zinc.200'),
         '--tw-prose-invert-hr': theme('colors.zinc.700 / 0.4'),
-        '--tw-prose-invert-quote-borders': theme('colors.zinc.500'),
+        '--tw-prose-invert-quote-borders': theme('colors.zinc.100'),
         '--tw-prose-invert-captions': theme('colors.zinc.500'),
         '--tw-prose-invert-code': theme('colors.zinc.300'),
         '--tw-prose-invert-code-bg': theme('colors.zinc.200 / 0.05'),
         '--tw-prose-invert-pre-code': theme('colors.zinc.100'),
         '--tw-prose-invert-pre-bg': 'rgb(0 0 0 / 0.4)',
-        '--tw-prose-invert-pre-border': theme('colors.zinc.200 / 0.1'),
+        '--tw-prose-invert-pre-border': theme('colors.zinc.100'),
         '--tw-prose-invert-th-borders': theme('colors.zinc.700'),
         '--tw-prose-invert-td-borders': theme('colors.zinc.800'),
 
@@ -80,7 +80,7 @@ module.exports = function typographyStyles({ theme }) {
         // Headings
         'h2, h3': {
           color: 'var(--tw-prose-headings)',
-          fontWeight: theme('fontWeight.semibold'),
+          fontWeight: theme('fontWeight.bold'),
         },
         h2: {
           fontSize: theme('fontSize.xl')[0],
@@ -100,7 +100,8 @@ module.exports = function typographyStyles({ theme }) {
 
         // Images
         img: {
-          borderRadius: theme('borderRadius.3xl'),
+          borderRadius: theme('borderRadius.md'),
+          border: '2px solid var(--tw-prose-quote-borders)',
         },
 
         // Inline elements
@@ -127,7 +128,8 @@ module.exports = function typographyStyles({ theme }) {
           fontSize: theme('fontSize.sm')[0],
           fontWeight: theme('fontWeight.semibold'),
           backgroundColor: 'var(--tw-prose-code-bg)',
-          borderRadius: theme('borderRadius.lg'),
+          border: '1px solid var(--tw-prose-quote-borders)',
+          borderRadius: theme('borderRadius.md'),
           paddingLeft: theme('spacing.1'),
           paddingRight: theme('spacing.1'),
         },
@@ -141,7 +143,7 @@ module.exports = function typographyStyles({ theme }) {
         // Quotes
         blockquote: {
           paddingLeft: theme('spacing.6'),
-          borderLeftWidth: theme('borderWidth.2'),
+          borderLeftWidth: theme('borderWidth.4'),
           borderLeftColor: 'var(--tw-prose-quote-borders)',
           fontStyle: 'italic',
         },
@@ -197,10 +199,10 @@ module.exports = function typographyStyles({ theme }) {
           fontSize: theme('fontSize.sm')[0],
           fontWeight: theme('fontWeight.medium'),
           backgroundColor: 'var(--tw-prose-pre-bg)',
-          borderRadius: theme('borderRadius.3xl'),
+          borderRadius: theme('borderRadius.md'),
           padding: theme('spacing.8'),
           overflowX: 'auto',
-          border: '1px solid',
+          border: '2px solid',
           borderColor: 'var(--tw-prose-pre-border)',
         },
         'pre code': {

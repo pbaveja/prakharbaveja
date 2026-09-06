@@ -19,7 +19,10 @@ export function Card({ as, className, children }) {
 
   return (
     <Component
-      className={clsx(className, 'group relative flex flex-col items-start')}
+      className={clsx(
+        className,
+        'group relative flex flex-col items-start rounded-md border-2 border-zinc-900 bg-white p-6 shadow-brutal-sm transition hover:-translate-x-px hover:-translate-y-px hover:shadow-brutal dark:border-zinc-100 dark:bg-zinc-900 dark:shadow-brutal-sm-dark dark:hover:shadow-brutal-dark',
+      )}
     >
       {children}
     </Component>
@@ -28,13 +31,10 @@ export function Card({ as, className, children }) {
 
 Card.Link = function CardLink({ children, ...props }) {
   return (
-    <>
-      <div className="absolute -inset-x-4 -inset-y-6 z-0 scale-95 bg-zinc-50 opacity-0 transition group-hover:scale-100 group-hover:opacity-100 sm:-inset-x-6 sm:rounded-2xl dark:bg-zinc-800/50" />
-      <Link {...props}>
-        <span className="absolute -inset-x-4 -inset-y-6 z-20 sm:-inset-x-6 sm:rounded-2xl" />
-        <span className="relative z-10">{children}</span>
-      </Link>
-    </>
+    <Link {...props}>
+      <span className="absolute inset-0 z-20" />
+      <span className="relative z-10">{children}</span>
+    </Link>
   )
 }
 

@@ -1,0 +1,216 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const article = {
+  author: "Prakhar Baveja",
+  date: "2026-09-16",
+  title: "Can a Small Language Model Understand My Bank Messages?",
+  description: "I'm building the finance app I actually want: one that understands my bank messages, keeps as much as possible on my phone, and gets smarter over time with a small language model.",
+}
+
+export const metadata = {
+  title: article.title,
+  description: article.description,
+}
+
+export default (props) => <ArticleLayout article={article} {...props} />
+
+**I'm building a personal finance app that reads my bank messages for me. This is the first post in a series about how I'm doing it, and why a very small AI model sits at the centre of the plan.**
+
+My phone gets dozens of messages from banks every week. Some tell me I spent money. Some carry an OTP. Some tell me I'm "pre-approved" for a loan I never asked for. Somewhere in that pile are the important messages I'm looking for, to know where my money went, and how much.
+
+So I'm building an app that reads them for me. It's called Ginti, and this series is to document what I learn while building it, whenever I get the time.
+
+## What is it?
+
+It's called **Ginti**. Ginti means "counting" in Hindi. It's a playful name I came up with after prompting one of the frontier AI models to give me a list of names for branded finance apps.
+
+I envision it as an Android app that reads bank SMS messages and payment app notifications on my phone. From each message, it pulls out what actually happened: how much money moved, which way, to whom, and from which account. Then it builds a historical record and automatically gives me the analyses I'd actually want from a finance app.
+
+For now, it's just for me, which keeps things simple. There are also plenty of privacy and platform restrictions that would make publishing an app like this complicated. Android gives apps access to SMS with the appropriate permissions, while iOS does not provide general-purpose access to a user's SMS inbox.
+
+Here's the whole idea in one example. A message like this arrives:
+
+> **From XX-BANKSM**
+> Rs 450.00 debited from A/c XX1234 on 12-Sep via UPI to SWIGGY. Ref 4521XXXX. Avl bal Rs 12,340.00
+
+And this is what Ginti understands from it:
+
+|                   |                          |
+| ----------------- | ------------------------ |
+| **Amount**        | −₹450.00                 |
+| **Where**         | Swiggy                   |
+| **Category**      | Food Delivery            |
+| **Paid with**     | UPI, account ending 1234 |
+| **Date**          | 12 Sep                   |
+| **Balance after** | ₹12,340.00               |
+
+*This message is made up. Every example in this series will be.*
+
+Multiply this by a few hundred transactions a month, add budgets and charts, and you have the app.
+
+## Why build it myself?
+
+Three reasons.
+
+**I want it to understand my money.** Every bank writes its messages differently. UPI references, card bill payments, transfers between my own accounts, refunds that should cancel out a purchase: these are the details that make a finance app useful or useless.
+
+**I want my messages to stay on my phone.** Bank messages say a lot about a person. The less of that leaves the device, the better.
+
+**I want to understand how small language models actually work.** I've used plenty of AI APIs. That's useful, but there's a big difference between calling a model and understanding what goes into making one useful for a specific task. Building something real is the best way I know to learn
+
+## How I'm building it
+
+Claude, of course. An engineer does not need to code anymore. 
+
+I started by writing a detailed build brief: what the product does, the technology choices, the design system, the privacy rules, and a list of milestones from "empty project" to "working app".
+
+Claude should work through that brief one milestone at a time. It writes a plan first and waits for my approval. Then it writes the code and the tests, so I can always look back, prompt it, and essentially micro-manage it for my own learning, even though I probably wouldn't need to for many things.
+
+In plain terms, the setup looks like this: the Android app is written in Kotlin/Java, the server is written in Python, and a web app will come later. All three talk to each other through one shared contract, so they can't drift apart.
+
+### Research along the way
+
+I know the basics of how language models work and how they're trained, mostly thanks to Andrey Karpathy and his YouTube videos. But "the basics" is nowhere near as much as I'd like to know.
+
+So I'll learn as I build.
+
+And that brings me to the way I intend to use AI to make this app function well.
+
+## What a language model actually does
+
+At its simplest, a language model takes some text and predicts what comes next, one small piece at a time.
+
+That's surprisingly powerful. The same mechanism that can write an essay can also turn a messy bank message into structured data.
+
+What a model learns is stored in its **parameters**: billions of numbers adjusted during training. More parameters generally mean a larger model, although size alone doesn't determine how capable a model is.
+
+## Big models and small models
+
+The AI tools most people have used, the ones that can write essays and answer almost anything, are **large language models**, or LLMs.
+
+There's another kind that gets much less attention: **small language models**, or SLMs.
+
+|                        | Large model (LLM)                          | Small model (SLM)                     |
+| ---------------------- | ------------------------------------------ | ------------------------------------- |
+| **Size**               | Tens to hundreds of billions of parameters | Hundreds of millions to a few billion |
+| **Typical strength**   | Broad reasoning and general tasks          | Narrow, specialised tasks             |
+| **Can run on a phone** | Usually impractical                        | Often practical                       |
+| **Inference cost**     | Higher                                     | Much lower                            |
+| **Offline use**        | Difficult                                  | Much more practical                   |
+
+The important distinction for this purpose isn't really "big versus small". It's **general-purpose versus specialised**.
+
+A large model can know a lot about a lot of things. I don't need that.
+
+I need something that's very good at one boring job.
+
+## How does a model fit on a phone?
+
+Even a small model is big by phone standards. What makes it practical is a technique called **quantization**.
+
+Think of a photo. A full-quality photo is a large file. Save it at a lower quality and the file shrinks a lot, but you can still tell exactly what's in the picture.
+
+Quantization does something similar for a model. Normally, each parameter might be stored using 16 bits. Store it in 8 bits and the weights take roughly half the space. Store them in 4 bits and they take roughly a quarter of the space.
+
+You trade some precision for a much smaller model, although how much quality you lose depends on the model and the quantization method.
+
+Here's what that means for a model with 1 billion parameters:
+
+| Bits per parameter | Approximate weight size |
+| ------------------ | ----------------------- |
+| 16 bits            | ~2 GB                   |
+| 8 bits             | ~1 GB                   |
+| 4 bits             | ~0.5 GB                 |
+
+That's before accounting for things like runtime memory and the model's context, but it gives you an idea of why smaller, quantized models are becoming practical on phones.
+
+And this isn't just theoretical. Recent mobile inference benchmarks are specifically testing quantized models on real phones, while Android is increasingly providing APIs for on-device model inference.
+
+## Why it doesn't really matter
+
+A small model is weak at general reasoning. Ask it about history, or give it a tricky maths problem, and it may struggle.
+
+But take a small model and train it on one narrow job, and it can become very good at that job.
+
+This extra training on your own examples is called **fine-tuning**.
+
+And that is the whole principle I'm going to explore:
+
+> ### I don't need a small model that knows everything. I need one that has seen thousands of bank SMS messages and gets them right.
+
+The interesting question is whether "small" is actually enough.
+
+## How the pieces fit together
+
+A small model is only one part of the plan.
+
+The rule is simple:
+
+**Try the cheapest method that works, and only move up when you have to.**
+
+1. **Simple rules first.** Most bank messages follow a fixed pattern. A pattern-matching rule can read them instantly, for free, and with predictable results. Having AI is no reason to skip this step.
+
+2. **The small model next.** When a message doesn't match any rule — a new bank, a changed format, an odd UPI message — the small model on the phone reads it.
+
+3. **The big model last.** If the phone isn't confident about the result, the message can go to a large model on my server for a second opinion, after applying the privacy rules described below.
+
+*(will add a diagram here, I'm lazy right now)*
+
+*Each message stops at the first step that can read it confidently. The dashed green lines are how the system gets cheaper over time.*
+
+The idea is that most messages should eventually be handled by the cheapest possible layer.
+
+## The big model is also a teacher
+
+Here's the part I find most interesting.
+
+The expensive model doesn't just solve hard cases. It can also help make the cheaper parts better.
+
+### It writes new rules
+
+When the big model reads a message format it hasn't seen before, it can also help create a pattern-matching rule for that format.
+
+Next time, the free rules step can handle it.
+
+The big model doesn't need to see that format again.
+
+### It trains the small model
+
+The big model can also label thousands of past messages with the right answers.
+
+The small model then learns from those labels.
+
+This is called **distillation**: a larger "teacher" model helps train a smaller "student" model, reducing the amount of manual labelling I need to do.
+
+And every time I correct a category in the app, that correction becomes one more example for the next round of training.
+
+So the system has a feedback loop:
+
+**Bank message → cheap method → hard case → big model → training data → better cheap method**
+
+Over time, the goal is for fewer and fewer messages to reach the expensive part.
+
+## What about privacy?
+
+Even though this starts out as a personal app, I'll keep a few privacy rules built in from day one:
+
+* OTP messages are thrown away the moment they're spotted. They are never saved, logged, or sent anywhere.
+* Before anything leaves the phone, account and card numbers are reduced to the last four digits, and things like phone numbers and PAN numbers are removed.
+* The rules and the small model both run on the phone.
+* The server should not need the original SMS to do its job.
+
+The last one is probably the most important.
+
+I don't want privacy to be something I add later. I want the architecture to make sending raw financial messages to the server unnecessary in the first place.
+
+## Where I'm starting
+
+I'm not starting with the small model. That might sound backwards, but it's deliberate.
+
+A small model needs training data, and I don't have any yet. So the first version uses only rules and the big model. That version is useful on day one, and every message it reads becomes labelled data.
+
+Once I have a few thousand examples, I'll fine-tune a small model and measure whether it actually earns its place on the phone.
+
+I don't know whether it will be good enough, just yet. That's partly the point of building this.
+
+**Let's see how far a small model can go.**

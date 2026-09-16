@@ -154,8 +154,7 @@ The rule is simple:
 
 3. **The big model last.** If the phone isn't confident about the result, the message can go to a large model on my server for a second opinion, after applying the privacy rules described below.
 
-*(will add a diagram here, I'm lazy right now)*
-
+<img src="/images/articles/can-a-small-language-model-understand-my-bank-messages/ginti-cascade-d3858ac6.png" alt={"app-flow"} width={480} />
 *Each message stops at the first step that can read it confidently. The dashed green lines are how the system gets cheaper over time.*
 
 The idea is that most messages should eventually be handled by the cheapest possible layer.

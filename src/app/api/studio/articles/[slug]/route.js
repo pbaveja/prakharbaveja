@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 
 import { buildArticleFile, parseArticleFile } from '@/lib/articleFile'
-import { getArticleFile, putArticleFile } from '@/lib/github'
+import { commitFiles, getArticleFile } from '@/lib/github'
+import { buildImagePath } from '@/lib/imagePath'
 import { validateArticleSource } from '@/lib/mdxValidate'
+
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024
 
 export async function GET(request, { params }) {
   const file = await getArticleFile(params.slug)
@@ -23,7 +26,7 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   const { slug } = params
-  const { title, date, description, body, sha } = await request.json().catch(() => ({}))
+  const { title, date, description, body, sha, images } = await request.json().catch(() => ({}))
 
   if (!title || !date || !description || !body) {
     return NextResponse.json(
@@ -51,7 +54,30 @@ export async function PUT(request, { params }) {
     )
   }
 
-  const fileSource = buildArticleFile({ title, date, description, body })
+  // Images picked in the editor aren't uploaded until publish, so resolve
+  // any still-referenced `pending:<id>` placeholders to their final
+  // committed path here — the resulting file goes into the SAME commit as
+  // the article text below, rather than a separate upload beforehand.
+  let resolvedBody = body
+  let imageFiles = []
+  for (const image of images || []) {
+    let placeholder = `pending:${image.id}`
+    if (!resolvedBody.includes(placeholder)) continue // removed from the body before publishing
+
+    let approxBytes = Math.ceil((image.contentBase64.length * 3) / 4)
+    if (approxBytes > MAX_IMAGE_BYTES) {
+      return NextResponse.json(
+        { error: `"${image.filename}" is too large — please use something under 2MB.` },
+        { status: 413 },
+      )
+    }
+
+    let { path, url } = buildImagePath(slug, image.filename, image.contentBase64)
+    resolvedBody = resolvedBody.replaceAll(placeholder, url)
+    imageFiles.push({ path, content: image.contentBase64, encoding: 'base64' })
+  }
+
+  const fileSource = buildArticleFile({ title, date, description, body: resolvedBody })
 
   const validation = await validateArticleSource(fileSource)
   if (!validation.valid) {
@@ -63,6 +89,16 @@ export async function PUT(request, { params }) {
     )
   }
 
-  const result = await putArticleFile(slug, fileSource, { sha: existing?.sha })
-  return NextResponse.json({ ok: true, commit: result.commit?.sha })
+  const articlePath = `src/app/articles/${slug}/page.mdx`
+
+  try {
+    await commitFiles(
+      [{ path: articlePath, content: fileSource, encoding: 'utf-8' }, ...imageFiles],
+      { message: sha ? `Update article: ${slug}` : `Publish article: ${slug}` },
+    )
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 409 })
+  }
+
+  return NextResponse.json({ ok: true })
 }

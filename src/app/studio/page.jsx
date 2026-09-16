@@ -42,6 +42,9 @@ export default async function StudioDashboard() {
           Studio
         </h1>
         <div className="flex gap-3">
+          <Button href="/studio/comments" variant="secondary">
+            Comments
+          </Button>
           <Button href="/studio/new">New article</Button>
           <LogoutButton />
         </div>

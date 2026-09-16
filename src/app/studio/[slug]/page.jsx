@@ -21,6 +21,7 @@ export default async function EditArticlePage({ params }) {
         title: parsed.title,
         date: parsed.date,
         description: parsed.description,
+        comments: parsed.comments,
         body: parsed.body,
       }}
     />

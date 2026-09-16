@@ -1,6 +1,9 @@
 const ARTICLE_MARKER = 'export const article = '
 const DEFAULT_EXPORT_MARKER = 'export default'
 
+/** Per-article comment setting; `open` is the default and isn't written to the file. */
+export const COMMENT_MODES = ['open', 'auth-only', 'off']
+
 /**
  * Finds the matching closing brace for the `{` at `startIndex`, respecting
  * string boundaries so quoted values (which may themselves contain `{`/`}`)
@@ -74,6 +77,7 @@ export function parseArticleFile(source) {
     date: article.date,
     title: article.title,
     description: article.description,
+    comments: COMMENT_MODES.includes(article.comments) ? article.comments : 'open',
     body,
   }
 }
@@ -84,7 +88,7 @@ export function parseArticleFile(source) {
  * produce invalid JS no matter what characters the author typed into the
  * title/description fields.
  */
-export function buildArticleFile({ title, date, description, author, body }) {
+export function buildArticleFile({ title, date, description, author, comments, body }) {
   const header = [
     "import { ArticleLayout } from '@/components/ArticleLayout'",
     '',
@@ -93,6 +97,8 @@ export function buildArticleFile({ title, date, description, author, body }) {
     `  date: ${JSON.stringify(date)},`,
     `  title: ${JSON.stringify(title)},`,
     `  description: ${JSON.stringify(description)},`,
+    // Kept on its own line: scripts/build-article-manifest.mjs reads it with a regex.
+    ...(comments && comments !== 'open' ? [`  comments: ${JSON.stringify(comments)},`] : []),
     '}',
     '',
     'export const metadata = {',

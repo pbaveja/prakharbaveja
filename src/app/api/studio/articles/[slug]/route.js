@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { buildArticleFile, parseArticleFile } from '@/lib/articleFile'
+import { COMMENT_MODES, buildArticleFile, parseArticleFile } from '@/lib/articleFile'
 import { commitFiles, getArticleFile } from '@/lib/github'
 import { buildImagePath } from '@/lib/imagePath'
 import { validateArticleSource } from '@/lib/mdxValidate'
@@ -26,13 +26,19 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   const { slug } = params
-  const { title, date, description, body, sha, images } = await request.json().catch(() => ({}))
+  const { title, date, description, body, sha, images, comments = 'open' } = await request
+    .json()
+    .catch(() => ({}))
 
   if (!title || !date || !description || !body) {
     return NextResponse.json(
       { error: 'Title, date, description and body are all required' },
       { status: 400 },
     )
+  }
+
+  if (!COMMENT_MODES.includes(comments)) {
+    return NextResponse.json({ error: 'Invalid comments setting' }, { status: 400 })
   }
 
   const existing = await getArticleFile(slug)
@@ -77,7 +83,13 @@ export async function PUT(request, { params }) {
     imageFiles.push({ path, content: image.contentBase64, encoding: 'base64' })
   }
 
-  const fileSource = buildArticleFile({ title, date, description, body: resolvedBody })
+  const fileSource = buildArticleFile({
+    title,
+    date,
+    description,
+    comments,
+    body: resolvedBody,
+  })
 
   const validation = await validateArticleSource(fileSource)
   if (!validation.valid) {

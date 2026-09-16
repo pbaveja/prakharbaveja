@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import clsx from 'clsx'
 
+import { ArticleStats, ArticleStatsProvider } from '@/components/ArticleStats'
 import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
 import { Container } from '@/components/Container'
@@ -88,8 +89,10 @@ function Article({ article }) {
       <Card.Title href={`/articles/${article.slug}`}>
         {article.title}
       </Card.Title>
-      <Card.Eyebrow as="time" dateTime={article.date} decorate>
-        {formatDate(article.date)}
+      <Card.Eyebrow as="div" decorate className="flex-wrap gap-x-3 gap-y-1">
+        <time dateTime={article.date}>{formatDate(article.date)}</time>
+        <span aria-hidden="true">·</span>
+        <ArticleStats slug={article.slug} showComments={article.comments !== 'off'} />
       </Card.Eyebrow>
       <Card.Description>{article.description}</Card.Description>
       <Card.Cta>Read article</Card.Cta>
@@ -313,11 +316,13 @@ export default async function Home() {
       {/* <Photos /> */}
       <Container className="mt-24 md:mt-28">
         <div className="mx-auto grid max-w-xl grid-cols-1 gap-y-20 lg:max-w-none lg:grid-cols-2">
-          <div className="flex flex-col gap-16">
-            {articles.map((article) => (
-              <Article key={article.slug} article={article} />
-            ))}
-          </div>
+          <ArticleStatsProvider slugs={articles.map((article) => article.slug)}>
+            <div className="flex flex-col gap-16">
+              {articles.map((article) => (
+                <Article key={article.slug} article={article} />
+              ))}
+            </div>
+          </ArticleStatsProvider>
           <div className="space-y-10 lg:pl-16 xl:pl-24">
             {/* <Newsletter /> */}
             <Resume />

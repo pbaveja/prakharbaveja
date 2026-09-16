@@ -72,28 +72,82 @@ export async function getArticleFile(slug) {
 }
 
 /**
- * Creates or updates an article's page.mdx via a direct commit to the
- * configured branch. Vercel's existing GitHub integration picks up the push
- * and deploys automatically — no separate deploy call needed.
+ * Commits one or more files (text and/or binary, e.g. an article's page.mdx
+ * alongside any images it references) as a SINGLE atomic commit, using
+ * GitHub's low-level Git Data API rather than the one-file-per-request
+ * Contents API. This is what lets an article edit that also adds new images
+ * land as one commit instead of several.
+ *
+ * `files` is `[{ path, content, encoding }]` where `encoding` is 'utf-8'
+ * (default) or 'base64'. Fails if the branch moved since we read its HEAD
+ * (the ref update is a fast-forward-only PATCH), which doubles as the
+ * concurrent-edit guard.
  */
-export async function putArticleFile(slug, content, { sha, message } = {}) {
+export async function commitFiles(files, { message } = {}) {
   const { owner, name, branch } = getConfig()
-  const path = `${ARTICLES_DIR}/${slug}/page.mdx`
+  const repoPath = `/repos/${owner}/${name}`
 
-  const response = await githubFetch(`/repos/${owner}/${name}/contents/${path}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      message: message || (sha ? `Update article: ${slug}` : `Publish article: ${slug}`),
-      content: Buffer.from(content, 'utf-8').toString('base64'),
-      branch,
-      ...(sha ? { sha } : {}),
-    }),
-  })
+  const refResponse = await githubFetch(`${repoPath}/git/ref/heads/${branch}`)
+  if (!refResponse.ok) {
+    throw new Error(`Failed to read branch ref: ${refResponse.status} ${await refResponse.text()}`)
+  }
+  const { object: ref } = await refResponse.json()
 
-  if (!response.ok) {
-    throw new Error(`Failed to publish article "${slug}": ${response.status} ${await response.text()}`)
+  const baseCommitResponse = await githubFetch(`${repoPath}/git/commits/${ref.sha}`)
+  if (!baseCommitResponse.ok) {
+    throw new Error(
+      `Failed to read base commit: ${baseCommitResponse.status} ${await baseCommitResponse.text()}`,
+    )
+  }
+  const baseCommit = await baseCommitResponse.json()
+
+  const treeEntries = []
+  for (const file of files) {
+    const blobResponse = await githubFetch(`${repoPath}/git/blobs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: file.content, encoding: file.encoding || 'utf-8' }),
+    })
+    if (!blobResponse.ok) {
+      throw new Error(
+        `Failed to create blob for "${file.path}": ${blobResponse.status} ${await blobResponse.text()}`,
+      )
+    }
+    const blob = await blobResponse.json()
+    treeEntries.push({ path: file.path, mode: '100644', type: 'blob', sha: blob.sha })
   }
 
-  return response.json()
+  const treeResponse = await githubFetch(`${repoPath}/git/trees`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ base_tree: baseCommit.tree.sha, tree: treeEntries }),
+  })
+  if (!treeResponse.ok) {
+    throw new Error(`Failed to create tree: ${treeResponse.status} ${await treeResponse.text()}`)
+  }
+  const tree = await treeResponse.json()
+
+  const commitResponse = await githubFetch(`${repoPath}/git/commits`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, tree: tree.sha, parents: [ref.sha] }),
+  })
+  if (!commitResponse.ok) {
+    throw new Error(`Failed to create commit: ${commitResponse.status} ${await commitResponse.text()}`)
+  }
+  const commit = await commitResponse.json()
+
+  const updateRefResponse = await githubFetch(`${repoPath}/git/refs/heads/${branch}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sha: commit.sha }),
+  })
+  if (!updateRefResponse.ok) {
+    throw new Error(
+      `Branch changed since this was loaded — refresh and try again. ` +
+        `(${updateRefResponse.status} ${await updateRefResponse.text()})`,
+    )
+  }
+
+  return { commitSha: commit.sha }
 }

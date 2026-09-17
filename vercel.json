@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/prune-views",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}

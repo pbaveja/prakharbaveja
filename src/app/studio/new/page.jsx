@@ -8,6 +8,7 @@ export default function NewArticlePage() {
         title: '',
         date: new Date().toISOString().slice(0, 10),
         description: '',
+        comments: 'open',
         body: '## Heading\n\nStart writing…\n',
       }}
     />

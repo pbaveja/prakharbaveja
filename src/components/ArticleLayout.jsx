@@ -1,9 +1,11 @@
 'use client'
 
-import { useContext } from 'react'
-import { useRouter } from 'next/navigation'
+import { useContext, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 
 import { AppContext } from '@/app/providers'
+import { ArticleStats, useArticlePageStats } from '@/components/ArticleStats'
+import { Comments } from '@/components/comments/Comments'
 import { Container } from '@/components/Container'
 import { Prose } from '@/components/Prose'
 import { formatDate } from '@/lib/formatDate'
@@ -24,6 +26,17 @@ function ArrowLeftIcon(props) {
 export function ArticleLayout({ article, children }) {
   let router = useRouter()
   let { previousPathname } = useContext(AppContext)
+  // Articles live at /articles/<slug>, so the slug comes from the URL and the
+  // MDX files don't need to pass it in.
+  let slug = usePathname()?.split('/').filter(Boolean).pop()
+  let commentMode = article.comments ?? 'open'
+  let pageStats = useArticlePageStats(slug)
+  // Once the comments list has loaded, its count is the most current one.
+  let [commentCount, setCommentCount] = useState(null)
+  let stats =
+    pageStats && commentCount !== null && pageStats.comments !== null
+      ? { ...pageStats, comments: commentCount }
+      : pageStats
 
   return (
     <Container className="mt-16 lg:mt-32">
@@ -44,18 +57,24 @@ export function ArticleLayout({ article, children }) {
               <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-black sm:text-5xl dark:text-white">
                 {article.title}
               </h1>
-              <time
-                dateTime={article.date}
-                className="order-first flex items-center text-base text-zinc-400 dark:text-zinc-500"
-              >
+              <div className="order-first flex flex-wrap items-center gap-x-3 gap-y-1 text-base text-zinc-400 dark:text-zinc-500">
                 <span className="h-4 w-0.5 rounded-full bg-zinc-200 dark:bg-zinc-500" />
-                <span className="ml-3">{formatDate(article.date)}</span>
-              </time>
+                <time dateTime={article.date}>{formatDate(article.date)}</time>
+                {stats !== null && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <ArticleStats stats={stats} showComments={commentMode !== 'off'} />
+                  </>
+                )}
+              </div>
             </header>
             <Prose className="mt-8" data-mdx-content>
               {children}
             </Prose>
           </article>
+          {commentMode !== 'off' && slug && (
+            <Comments slug={slug} mode={commentMode} onCountChange={setCommentCount} />
+          )}
         </div>
       </div>
     </Container>

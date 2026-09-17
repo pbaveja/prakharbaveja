@@ -1,5 +1,6 @@
 import Link from 'next/link'
 
+import { ArticleStats, ArticleStatsProvider } from '@/components/ArticleStats'
 import { SimpleLayout } from '@/components/SimpleLayout'
 import { getAllArticles } from '@/lib/articles'
 import { formatDate } from '@/lib/formatDate'
@@ -12,12 +13,12 @@ function Article({ article }) {
         className="group block transition hover:translate-x-0.5"
       >
         <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-6">
-          <time
-            dateTime={article.date}
-            className="order-2 flex-none whitespace-nowrap text-sm text-zinc-500 sm:order-1 sm:w-36 dark:text-zinc-400"
-          >
-            {formatDate(article.date)}
-          </time>
+          <div className="order-2 flex flex-none flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-500 sm:order-1 sm:w-36 sm:flex-col sm:items-start dark:text-zinc-400">
+            <time dateTime={article.date} className="whitespace-nowrap">
+              {formatDate(article.date)}
+            </time>
+            <ArticleStats slug={article.slug} showComments={article.comments !== 'off'} />
+          </div>
           <div className="order-1 min-w-0 flex-auto sm:order-2">
             <h2 className="text-lg font-bold text-black dark:text-white">
               <span className="transition group-hover:bg-highlight group-hover:px-0.5 group-hover:text-black">
@@ -48,11 +49,13 @@ export default async function ArticlesIndex() {
       title="Writing on software, programming, tech, and product."
       intro="All of my thoughts on programming, product and everything tech, collected in chronological order."
     >
-      <div className="mt-4 max-w-3xl border-t-2 border-black dark:border-white">
-        {articles.map((article) => (
-          <Article key={article.slug} article={article} />
-        ))}
-      </div>
+      <ArticleStatsProvider slugs={articles.map((article) => article.slug)}>
+        <div className="mt-4 max-w-3xl border-t-2 border-black dark:border-white">
+          {articles.map((article) => (
+            <Article key={article.slug} article={article} />
+          ))}
+        </div>
+      </ArticleStatsProvider>
     </SimpleLayout>
   )
 }

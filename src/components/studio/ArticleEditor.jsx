@@ -13,7 +13,13 @@ import { Button } from '@/components/Button'
 import { Prose } from '@/components/Prose'
 import { DiagramBuilderModal } from '@/components/studio/DiagramBuilderModal'
 import { ImageUploadModal } from '@/components/studio/ImageUploadModal'
-import { slugify } from '@/lib/articleFile'
+import { COMMENT_MODES, slugify } from '@/lib/articleFile'
+
+const COMMENT_MODE_LABELS = {
+  open: 'Open (guests and signed-in)',
+  'auth-only': 'Signed-in only',
+  off: 'Off',
+}
 
 // react-md-editor touches the DOM/CodeMirror at import time, so it can only
 // run client-side.
@@ -89,6 +95,7 @@ export function ArticleEditor({ mode, slug: initialSlug, sha, initialValues }) {
   let [title, setTitle] = useState(initialValues.title)
   let [date, setDate] = useState(initialValues.date)
   let [description, setDescription] = useState(initialValues.description)
+  let [comments, setComments] = useState(initialValues.comments ?? 'open')
   let [body, setBody] = useState(initialValues.body)
   let [slug, setSlug] = useState(initialSlug || '')
   let [slugTouched, setSlugTouched] = useState(mode === 'edit')
@@ -189,7 +196,7 @@ export function ArticleEditor({ mode, slug: initialSlug, sha, initialValues }) {
     let response = await fetch(`/api/studio/articles/${effectiveSlug}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, date, description, body, sha, images }),
+      body: JSON.stringify({ title, date, description, comments, body, sha, images }),
     })
     let data = await response.json().catch(() => ({}))
     setSaving(false)
@@ -240,6 +247,19 @@ export function ArticleEditor({ mode, slug: initialSlug, sha, initialValues }) {
             onChange={(event) => setDate(event.target.value)}
             className={inputClassName}
           />
+        </Field>
+        <Field label="Comments">
+          <select
+            value={comments}
+            onChange={(event) => setComments(event.target.value)}
+            className={inputClassName}
+          >
+            {COMMENT_MODES.map((value) => (
+              <option key={value} value={value}>
+                {COMMENT_MODE_LABELS[value]}
+              </option>
+            ))}
+          </select>
         </Field>
         <Field label="Description" className="sm:col-span-2">
           <textarea

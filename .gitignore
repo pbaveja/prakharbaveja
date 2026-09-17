@@ -15,6 +15,9 @@
 # production
 /build
 
+# generated at dev/build time (scripts/build-article-manifest.mjs)
+/src/generated/
+
 # misc
 .DS_Store
 *.pem

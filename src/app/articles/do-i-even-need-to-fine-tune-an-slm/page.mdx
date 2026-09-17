@@ -1,0 +1,159 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const article = {
+  author: "Prakhar Baveja",
+  date: "2026-09-18",
+  title: "Do I Even Need to Fine-Tune an SLM?",
+  description: "Rules, similarity search, and an LLM can already handle most of the transaction parsing pipeline. Before adding an SLM, I want to measure exactly how much work is left for it to do.",
+}
+
+export const metadata = {
+  title: article.title,
+  description: article.description,
+}
+
+export default (props) => <ArticleLayout article={article} {...props} />
+
+When I wrote the first version of [Ginti's milestone plan](articles/can-a-small-language-model-understand-my-bank-messages), I assumed the on-device model, the SLM, would be one of the important parts of version one.
+
+I'm not sure that it is anymore.
+
+That was slightly annoying to write down, because this was one of the parts I was most excited about building and learning about. But being excited about building something isn't the same as having a reason to build it.
+
+There's a surprisingly easy trap to fall into when building something yourself: confusing "I want to build this" with "this needs to exist."
+
+So I moved the on-device model out of version one.
+
+The question now is whether I'm postponing the SLM fine-tuning, or whether I'm just removing an interesting piece from the plan because I got carried away with it.
+
+I don't want to make that decision based on instinct either way. The only useful way forward is to define what would make the SLM worth building, measure the current system, and see where the numbers land.
+
+## Why I changed the plan
+
+I initially described the pipeline as three layers: rules first, a small model next, and a large model as the fallback. And the large model teaches the smaller model.
+
+Sounds great, and it's the architecture that felt right.
+
+But looking at it again, I realised I had designed the pipeline around the existence of an SLM rather than around a problem that actually required one.
+
+The categorisation pipeline works in layers. Simple rules catch most messages for free. Whatever slips through goes further up the chain, eventually reaching a full LLM through an API. And every correction I make by hand gets saved.
+
+That last part changes the question.
+
+Over time, I'll have a pile of labelled examples that could be used to fine-tune a small model. So the obvious next move is to train something small enough to run on my phone and stop depending on an API call for every message.
+
+So well, let's check that before actually building this bit.
+
+## What would make it worth building?
+
+There are actually two different things I could put on the phone.
+
+One is **parsing** a bank message: figuring out that a message means ₹450 was spent at Swiggy on a particular date, for example.
+
+The other is **categorising** the transaction: deciding that Swiggy belongs under Food Delivery rather than Shopping or something else.
+
+These are different problems with different failure modes. Parsing is mostly about extracting structured information from messy text. Categorisation is more subjective: even if the transaction is parsed perfectly, the model still has to decide whether something belongs under Food Delivery, Eating Out, Shopping, or something else.
+
+I wrote down what would actually be convincing to warrant an SLM.
+
+* For **on-device categorisation**, the model is worth building only if a meaningful number of transactions still need the network to get categorised, or if instant offline categorisation is worth adding roughly 200 to 300 MB to the app, which is around the size of the model I'm currently considering ([EmbeddingGemma](https://huggingface.co/google/embeddinggemma-300m): ~308M parameters, runs under 200MB of RAM quantized)
+
+* For **on-device message parsing**, it's worth building only if there's a measurable slice of messages that the simple rules can't handle, and I actually care about handling those messages offline.
+
+If the fallback rate ends up being under a few percent and costs pennies a month, the honest answer is to skip it. It would be a little foolish to start with "I want an SLM" and then spend the rest of the project finding reasons to justify it.
+
+## The economics, plainly
+
+Cost isn't a good reason to fine-tune anything here.
+
+Labelling a few thousand of my own messages with a frontier model costs a few dollars, once. Suppose the app eventually sees around 300 transactions a month. Even if 15% of them reach the big model, that's only around 45 requests. That's not an expensive system.
+
+If I told myself I was building an on-device model to save money, that would just be false. I think I originally wanted cost to be part of the argument because "run it on my phone instead of paying an API" sounds like a good engineering reason.
+
+There are reasons that do hold up, though.
+
+1. **Offline and instant.** No network call, no waiting.
+
+2. **Privacy.** If this app eventually handles other people's financial data, keeping parsing and categorisation on the device has a value beyond API cost.
+
+3. **Learning.** I want to learn how to train, optimise and run a small model.
+
+There's also a reason I need to be slightly careful with this experiment: I want the SLM to be useful. I think it would be fun to build. I'd get to learn about fine-tuning, quantisation, inference, all of it. So I'm probably not the most neutral person to decide whether it belongs in the app. Which is another reason to make the decision based on numbers.
+
+## The pipeline
+
+The basic pipeline is still the same.
+
+A message comes in. Rules try to match it against known formats. Most messages are surprisingly predictable, so this is cheap, fast, and usually right.
+
+If nothing matches, the system checks the message against transactions I've already confirmed, using similarity search. If that's still not confident enough, it goes to a full LLM. And every correction I make afterward gets saved and feeds back into the system. Each step only runs if the one before it wasn't confident enough. And that's the whole point of doing it in layers. Like I mentioned before, try the cheapest method that works, and only move up when you have to.
+
+Imagine 300 transactions arriving in a month. Maybe rules handle 240 of them. Similarity search handles another 45. The big model sees 15. That's a 5% LLM fallback rate.
+
+At that point, I have a very different question to answer.
+
+If that number eventually becomes 2 out of 300, spending time building and optimising a 200+ MB on-device model starts to look silly.
+
+If it becomes 80 out of 300, then I could justify it. And somewhere I'm hoping that is the case. Which is probably another reason I need the experiment.
+
+I don't know which one it will be yet.
+
+## The experiment
+
+The answers will have to come from real usage. The rough process that I'll get into next is:
+
+1. Pull my own SMS history, redact it, and get a frontier model to label a large batch of messages.
+
+2. Hand-check a smaller set of those labels and turn it into a frozen gold set.
+
+3. Build the real categorisation pipeline: rules, similarity search, and LLM fallback.
+
+4. Let it run on actual daily usage.
+
+5. Measure how often the expensive model still needs to step in, after corrections have had time to feed back into the cheaper layers.
+
+6. Compare that number against the thresholds I wrote down earlier.
+
+This actually becomes a pre-MVP app for myself anyway.
+
+The gold set is important because I don't want to eventually test the system on questions it has already seen. Otherwise I'd be measuring how well it remembers the test data, not how well it actually works.
+
+The gold set gets created once and then stays out of training. It's there to grade the system, not teach it.
+
+**There's one complication to watch out for here: ** A system could get a very low fallback rate simply by being extremely confident and very wrong. So I need to measure accuracy alongside how often each layer gets used.* Fallback rate by itself isn't enough.*
+
+## What the gold set will tell me
+
+I want to know a few different things.
+
+How often does the system produce a structurally valid transaction at all?
+
+And then the individual pieces matter.
+
+Did it get the amount right? Did it identify the merchant correctly? Did it get the date right? Did it identify the payment method and account correctly?
+
+Getting the merchant wrong is annoying. Getting ₹4,500 instead of ₹450 is a non-negotiable mistake to rectify.
+
+And then there's categorisation.
+
+I also want to look at the less common categories separately. A system can look great on average while quietly being terrible at the categories that don't show up very often. So I want to look at those separately too.
+
+And finally, there's the number I care about most for this particular question:
+
+**How often does the big model still have to step in?**
+
+That number tells me whether the cheaper layers are actually doing their job. If rules and similarity search can handle almost everything, then I probably don't need another model. If the big model is constantly being called, then I have a much better reason to build one.
+
+## What "no" looks like
+
+If the fallback rate turns out to already be small and cheap, the right call is to skip the on-device model.
+
+The initial roadmap is a hypothesis, not a contract. The experiment might tell me to fine-tune an SLM, use an on-device model without fine-tuning, or skip the SLM entirely.
+
+## Where this leaves things
+
+As you can tell, I still don't know whether I need to fine-tuned SLM but the good thing is that, I don't have to decide yet. I just need to build the thing that gives me the answer.
+
+So for now, the small model stays out of version one. The rules and the big model get to do the work, and I'll collect the evidence. If the expensive model keeps seeing a meaningful number of messages, I'll have a reason to build the SLM. If it doesn't, I won't.
+
+And that's a much better reason to build something than simply wanting to build it.

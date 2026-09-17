@@ -21,7 +21,7 @@ function Article({ article }) {
           </div>
           <div className="order-1 min-w-0 flex-auto sm:order-2">
             <h2 className="text-lg font-bold text-black dark:text-white">
-              <span className="transition group-hover:bg-highlight group-hover:px-0.5 group-hover:text-black">
+              <span className="transition group-hover:bg-blue-600 group-hover:px-0.5 group-hover:text-white dark:group-hover:bg-blue-500 dark:group-hover:text-black">
                 {article.title}
               </span>
             </h2>

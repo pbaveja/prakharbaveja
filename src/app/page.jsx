@@ -4,7 +4,6 @@ import clsx from 'clsx'
 
 import { ArticleStats, ArticleStatsProvider } from '@/components/ArticleStats'
 import { Button } from '@/components/Button'
-import { Card } from '@/components/Card'
 import { Container } from '@/components/Container'
 import {
   GitHubIcon,
@@ -83,20 +82,91 @@ function ArrowDownIcon(props) {
   )
 }
 
-function Article({ article }) {
+function PencilIcon(props) {
   return (
-    <Card as="article">
-      <Card.Title href={`/articles/${article.slug}`}>
-        {article.title}
-      </Card.Title>
-      <Card.Eyebrow as="div" decorate className="flex-wrap gap-x-3 gap-y-1">
-        <time dateTime={article.date}>{formatDate(article.date)}</time>
-        <span aria-hidden="true">·</span>
-        <ArticleStats slug={article.slug} showComments={article.comments !== 'off'} />
-      </Card.Eyebrow>
-      <Card.Description>{article.description}</Card.Description>
-      <Card.Cta>Read article</Card.Cta>
-    </Card>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path
+        d="M15.75 4.75 19.25 8.25 9 18.5l-4.25.75.75-4.25L15.75 4.75Z"
+        className="fill-zinc-100 stroke-zinc-400 dark:fill-zinc-100/10 dark:stroke-zinc-500"
+      />
+      <path
+        d="m13.5 7 3.5 3.5"
+        className="stroke-zinc-400 dark:stroke-zinc-500"
+      />
+    </svg>
+  )
+}
+
+function ArrowRightIcon(props) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M8.75 3.75 12.25 8m0 0-3.5 4.25M12.25 8h-8.5"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function ArticleRow({ article, index }) {
+  return (
+    <li>
+      <Link
+        href={`/articles/${article.slug}`}
+        className="group flex gap-5 transition hover:translate-x-0.5"
+      >
+        <span
+          aria-hidden="true"
+          className="w-8 flex-none text-2xl font-extrabold leading-none tabular-nums text-zinc-300 transition group-hover:text-black dark:text-zinc-600 dark:group-hover:text-white"
+        >
+          {String(index + 1).padStart(2, '0')}
+        </span>
+        <div className="min-w-0">
+          <h3 className="text-base font-bold text-black dark:text-white">
+            <span className="transition group-hover:bg-blue-600 group-hover:px-0.5 group-hover:text-white dark:group-hover:bg-blue-500 dark:group-hover:text-black">
+              {article.title}
+            </span>
+          </h3>
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
+            <time dateTime={article.date}>{formatDate(article.date)}</time>
+            <span aria-hidden="true">·</span>
+            <ArticleStats slug={article.slug} showComments={article.comments !== 'off'} />
+          </div>
+        </div>
+      </Link>
+    </li>
+  )
+}
+
+function WritingList({ articles, total }) {
+  return (
+    <section>
+      <h2 className="flex text-sm font-bold text-black dark:text-white">
+        <PencilIcon className="h-6 w-6 flex-none" />
+        <span className="ml-3">Latest writing</span>
+      </h2>
+      <ArticleStatsProvider slugs={articles.map((article) => article.slug)}>
+        <ol className="mt-8 space-y-8">
+          {articles.map((article, index) => (
+            <ArticleRow key={article.slug} article={article} index={index} />
+          ))}
+        </ol>
+      </ArticleStatsProvider>
+      <Button href="/articles" className="group mt-10 px-5 py-3 text-base">
+        Read all writing ({total})
+        <ArrowRightIcon className="h-5 w-5 stroke-zinc-300 transition group-hover:translate-x-1 dark:stroke-zinc-400" />
+      </Button>
+    </section>
   )
 }
 
@@ -259,7 +329,8 @@ function Photos() {
 }
 
 export default async function Home() {
-  let articles = (await getAllArticles()).slice(0, 4)
+  let allArticles = await getAllArticles()
+  let articles = allArticles.slice(0, 5)
 
   return (
     <>
@@ -291,7 +362,7 @@ export default async function Home() {
           <div className="mt-6 flex gap-6">
             {/* <SocialLink href="#" aria-label="Follow on X" icon={XIcon} /> */}
             <SocialLink
-              href="https://github/pbaveja"
+              href="https://github.com/pbaveja"
               aria-label="Follow on GitHub"
               icon={GitHubIcon}
             />
@@ -316,13 +387,7 @@ export default async function Home() {
       {/* <Photos /> */}
       <Container className="mt-24 md:mt-28">
         <div className="mx-auto grid max-w-xl grid-cols-1 gap-y-20 lg:max-w-none lg:grid-cols-2">
-          <ArticleStatsProvider slugs={articles.map((article) => article.slug)}>
-            <div className="flex flex-col gap-16">
-              {articles.map((article) => (
-                <Article key={article.slug} article={article} />
-              ))}
-            </div>
-          </ArticleStatsProvider>
+          <WritingList articles={articles} total={allArticles.length} />
           <div className="space-y-10 lg:pl-16 xl:pl-24">
             {/* <Newsletter /> */}
             <Resume />

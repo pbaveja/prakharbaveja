@@ -1,0 +1,55 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const article = {
+  author: "Prakhar Baveja",
+  date: "2026-09-18",
+  title: "Coding Is Cheap. Building Is Not.",
+  description: "AI can write code and build things end-to-end. But knowing what to build, understanding how it works, and enjoying the process still matter. Some thoughts on this as I continue building in tech.",
+}
+
+export const metadata = {
+  title: article.title,
+  description: article.description,
+}
+
+export default (props) => <ArticleLayout article={article} {...props} />
+
+Yes, coding is completely solved.
+
+You can give an AI agent a set of requirements and, more often than not, it will build something that works, and works REALLY well. But I think there are two things we need to be careful about.
+
+**1. Knowing enough to guide the agent.**
+
+If you let an agent figure everything out end-to-end, yes, it will often get the job done. But you need to know enough to tell when it has done something wrong.
+
+You need to spot the edge cases, understand why something might break, and know which parts of the system need more thought. You also need to know what questions to ask and where to push the agent further.
+
+And that only happens when you understand the basics. You cannot guide something well if you don't understand what it's doing.
+
+The urge to skip the fundamentals is real. Why learn something when an agent can do it for you? But I think the fundamentals matter even more now. Not because we need to write every line ourselves, but because we need to know what we're looking at.
+
+If you're new to building, I'd say, start with understanding how networks work, how different components of an E2E application connect to one another. The database, the client side application, the backend, the auth etc.
+
+**2. The joy of building.**
+
+This one is more personal, and subjective, I guess.
+
+Building things has become cheap. At least the execution part of it has. You can go from an idea to a working prototype with 20 dollars and a laptop.
+
+But if the AI agent does everything, what are you left with?
+
+For me, a big part of building something is figuring things out. Trying different approaches, getting things wrong, understanding why they don't work, and eventually getting them right. The entire craft of doing it, for a lack of a better word, nicely.
+
+If we remove all of that, I think we lose some of the reason we wanted to build it in the first place.
+
+And this applies to more than software. Whether it's software, hardware, a game, or anything else, the care we put into something is directly related to the joy we get out of building it.
+
+These are some of the things I've been thinking about while the tech advancements of 2026 come into the daily life of a software engineer, while building Ginti, the finance app for myself and while I prompt the agent for other smaller things on the side.
+
+Be it a game, feature planning at work, or a simple notes app, AI has made it much easier to go from an idea to something that works. I'm still figuring out where I want to draw the line between letting the agent do its thing and getting into the details myself.
+
+Not sure if this is clear but I'll say it still - the answer is definitely **not** to stop using agents or to do everything manually. They are **incredibly useful**.
+
+I just don't want to get to a point where I can build anything but don't understand what I've built, or worse, don't enjoy building it anymore.
+
+More on Ginti later. I have a working prototype and a bunch of classifiers in place. There's more to figure out (with my coworking buddy Opus 5.5)

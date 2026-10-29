@@ -1,0 +1,75 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const article = {
+  author: "Prakhar Baveja",
+  date: "2026-10-30",
+  title: "Enter Jev - a System One model",
+  description: "Came across Jev while building an app and thought it might be a good fit. A gist of the learnings and the resultant change in approach.",
+}
+
+export const metadata = {
+  title: article.title,
+  description: article.description,
+}
+
+export default (props) => <ArticleLayout article={article} {...props} />
+
+While I was exploring and building Ginti, X (formerly Twitter) exploded with a release from [TypeSafe AI](https://typesafe.ai/).
+
+That being Jev, a System One model. The idea is quite different from what we're used to with LLMs. Instead of generating text, it evaluates possible states and answers a question with a probability. 
+
+The claims were pretty wild. 200x faster, 400x cheaper, and so on. And that is because input and output tokens are the real cost of LLms and this doesn't have that, at least not like the LLMs we're used to.
+
+Since then, there have been replicas, maybe better ones. I don't know. It's hard to keep up with everything that gets released every week.
+
+> I've subscribed to [AI News by Latent Space](https://latent.space/news/) and I'm scroll Twitter often, mostly following tech and football. This combination keeps me up to date. If you'd like to do the same, that's a good place to start.
+
+Anyway, back to Jev.
+
+It's essentially a classification king. Give it a set of possible answers, and it tells you how likely each one is. And what am I doing with Ginti?
+
+**Classification.**
+
+So first, I wanted to understand what my actual dataset looked like, what I could extract using simple templates, and what was left for a model to figure out. More importantly, I needed a gold set: a collection of messages with labels that I could trust and use to evaluate different approaches.
+
+I got Claude to help me build a minimal Android app that reads my SMS inbox, filters out OTPs and promotional messages, redacts sensitive information, and exports the rest as JSONL.
+
+The same work also included the historical SMS importer that will eventually be used in the actual app, a local Python workspace for analysis, and a script to label the corpus using an LLM API.
+
+Needless to say, I used Opus 5.5 for this, and it overengineered the hell out of it. I tried to stay involved at every step, but things got out of hand pretty quickly. So parts of this are truly *vibe-coded*. My verification is essentially going to be looking at the analysis against my own SMS messages and checking whether the results make sense.
+
+The first thing I learned was that bank and financial messages have a lot of different templates. Which, in hindsight, is pretty obvious.
+
+Different banks, different transaction types, different wording, different formats. Even when two messages describe the same kind of transaction, they might look completely different. So I started looking for public datasets and sources that could help me identify billers, merchant names, company names, and other useful information. The idea was to build a reference layer. A public dictionary that could be used to check the model's output and help me choose reliable labels for the gold set. I'd also create a bundle from these sources that I could regenerate by running the same scripts again. That way, the process wouldn't depend on a one-off collection of data.
+
+For labelling, I wanted a three-pronged approach. Sonnet and Jev would run in parallel. Depending on their answers and some confidence conditions, certain messages would be escalated to Opus. The outputs would then be compared, and only sufficiently agreed-upon results would be automatically labelled.
+
+If Sonnet and Jev agreed without escalation, I could record the label as unanimously confident. If a message was escalated and Opus agreed, I'd record that too. If the models disagreed, or the outputs failed validation, the message would be left for me to review.
+
+The idea was to use model agreement to reduce the amount of manual labelling I'd have to do. I'd examine the results and decide what actually belonged in the gold set.
+
+I spent time scraping and compiling publicly available merchant and company data. The extraction process was messy, and honestly, a little boring. I'm not an expert at this, and Claude helped me quite a bit with putting the bundle together.
+
+I don't think it's worth going into the details of how I scraped and compiled everything. The interesting part is what happened when I tried to use it.
+
+
+**The results weren't great.** I'd spent over $40 on Sonnet and Opus, and they weren't able to categorise the messages reliably enough. The public reference data wasn't particularly useful either, at least not in the way I'd hoped.
+
+I probably could have put more effort into collecting and cleaning the data. But I questioned whether I was using intelligence the right way. I didn't need intelligence in the traditional way of how Opus 5.5 beats Haiku or other models. I want intelligence like how the AI mode in Google search tells me the probable merchant name and category when I search something like "muhavara enterprises private limited" which is actually the parent company for Blue Tokai and should be classfied as a coffee spend.
+
+So in comes Gemini Flash. Cheap and is somewhat what Google uses for AI Mode.
+
+Also, Jev actually did a fairly good job. And the more I improve my learning loop, the better it should get at handling the messages it struggles with today. So I changed the approach.
+
+Jev would be the primary classifier. Messages it wasn't confident about would be escalated to Gemini Flash. I'd inspect the results, correct mistakes, and use those corrections to improve the process. Two relatively cheap models, doing the jobs they're better suited for.
+
+What the numbers look like:
+
+1. About 97% of a recent month's messages could be read using templates alone. Amount and transaction direction were at 99.5%, both above their targets.
+2. Merchant classification was a different story. The model's initial answers weren't reliable enough, and my own decisions were needed to tune the results.
+
+This makes me think that some form of fine-tuning, or perhaps user-specific tuning, will be needed to make a production-grade financial categorisation app reliable (maybe an SLM, woohoo).
+
+There are probably larger applications for this approach, too. Fraud detection comes to mind. If I can reliably classify financial transactions and identify unusual patterns, I could use Jev to flag potentially fraudulent transactions and trigger workflows to inform the user. Anyway.
+
+Next up is designing the app, building the parsers, implementing the basic functionality, and, fixing the bugs that come along, despite the super intelligent Opus 5.5 helping me out.

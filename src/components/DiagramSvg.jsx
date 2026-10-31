@@ -5,94 +5,101 @@
 // it can only safely call plain functions — importing a 'use client' module
 // there resolves to an inert client-reference object instead of the real
 // component and throws "Element type is invalid... but got: object").
+//
+// All geometry lives in @/lib/diagramLayout, which is unit tested.
 
-export const VIEW_WIDTH = 800
-export const VIEW_HEIGHT = 450
-export const NODE_WIDTH = 140
-export const NODE_HEIGHT = 56
+import {
+  FONT_SIZE,
+  canvasSize,
+  edgeGeometry,
+  edgeLabelPosition,
+  groupLayout,
+  groupParallelEdges,
+  isLater,
+  layoutNodes,
+  legendLayout,
+  nodeStyle,
+  offsetPerpendicular,
+  parallelOffset,
+} from '@/lib/diagramLayout'
 
-export const NODE_COLORS = {
-  grey: {
-    label: 'Grey',
-    swatch: '#F9F8F6',
-    fill: 'fill-paper dark:fill-zinc-800',
-    text: 'fill-zinc-900 dark:fill-zinc-100',
-  },
-  yellow: {
-    label: 'Yellow',
-    swatch: '#FFE600',
-    fill: 'fill-highlight dark:fill-highlight',
-    text: 'fill-zinc-900',
-  },
-  blue: {
-    label: 'Blue',
-    swatch: '#7DD3FC',
-    fill: 'fill-sky-300 dark:fill-sky-400',
-    text: 'fill-zinc-900',
-  },
-  green: {
-    label: 'Green',
-    swatch: '#6EE7B7',
-    fill: 'fill-emerald-300 dark:fill-emerald-400',
-    text: 'fill-zinc-900',
-  },
-}
+export {
+  DEFAULT_HEIGHT as VIEW_HEIGHT,
+  DEFAULT_WIDTH as VIEW_WIDTH,
+  LEGACY_COLOR_ORDER,
+  NODE_HEIGHT,
+  NODE_STYLES,
+  NODE_STYLES as NODE_COLORS,
+  NODE_WIDTH,
+  ROLE_ORDER,
+  scrollMinWidth,
+} from '@/lib/diagramLayout'
 
-// A small gap beyond the node's true border so the line/arrowhead doesn't
-// visually merge with the node's own stroke.
-const EDGE_GAP = 3
+const DASH = '6 4'
+const INNER_DASH = '5 4'
 
-// Offset, in px, between edges that connect the same pair of nodes, so
-// parallel connections fan out instead of drawing exactly on top of
-// each other.
-const PARALLEL_EDGE_SPACING = 14
+function NodeBody({ layout, style }) {
+  return (
+    <>
+      {layout.title.map((line, index) => (
+        <text
+          key={`t${index}`}
+          x={line.x}
+          y={line.y}
+          textAnchor="middle"
+          dominantBaseline={layout.simple ? 'middle' : undefined}
+          className={`${style.text} font-semibold`}
+          fontSize={FONT_SIZE.title}
+        >
+          {line.text}
+        </text>
+      ))}
 
-// Where a ray from a rectangle's center in direction (dx, dy) exits the
-// rectangle — exact border intersection, not an ellipse approximation, so
-// lines terminate flush with the node's edge instead of cutting into it.
-function rectBoundaryPoint(center, dx, dy) {
-  if (dx === 0 && dy === 0) return { x: center.x, y: center.y }
+      {layout.sublabel.map((line, index) => (
+        <text
+          key={`s${index}`}
+          x={line.x}
+          y={line.y}
+          textAnchor="middle"
+          className={`${style.text} opacity-70`}
+          fontSize={FONT_SIZE.sublabel}
+        >
+          {line.text}
+        </text>
+      ))}
 
-  let halfWidth = NODE_WIDTH / 2 + EDGE_GAP
-  let halfHeight = NODE_HEIGHT / 2 + EDGE_GAP
-  let t = Math.min(
-    dx !== 0 ? halfWidth / Math.abs(dx) : Infinity,
-    dy !== 0 ? halfHeight / Math.abs(dy) : Infinity,
+      {layout.lines.map((line, index) => (
+        <text key={`l${index}`} x={line.x} y={line.y} className={style.text} fontSize={FONT_SIZE.body}>
+          {line.text}
+        </text>
+      ))}
+    </>
   )
-
-  return { x: center.x + dx * t, y: center.y + dy * t }
 }
 
-function edgeEndpoints(fromNode, toNode) {
-  let dx = toNode.x - fromNode.x
-  let dy = toNode.y - fromNode.y
-  let start = rectBoundaryPoint(fromNode, dx, dy)
-  let end = rectBoundaryPoint(toNode, -dx, -dy)
+export function DiagramSvg({ data, nodes, edges, selectedNodeId, onNodeClick }) {
+  // Accepts either the whole `data` object or the older (nodes, edges) pair,
+  // so both call sites and any in-flight editor state keep working.
+  let diagram = data ?? { nodes, edges }
+  let allNodes = diagram.nodes || []
+  let allEdges = diagram.edges || []
+  let groups = diagram.groups || []
+  let { width, height } = canvasSize(diagram)
 
-  return { x1: start.x, y1: start.y, x2: end.x, y2: end.y }
-}
-
-// Groups edges that share the same (unordered) pair of endpoints, so
-// multiple connections between the same two nodes can be fanned out
-// instead of overlapping.
-function groupParallelEdges(edges) {
-  let groups = {}
-  for (let edge of edges) {
-    let key = [edge.from, edge.to].sort().join('|')
-    if (!groups[key]) groups[key] = []
-    groups[key].push(edge.id)
-  }
-  return groups
-}
-
-export function DiagramSvg({ nodes, edges, selectedNodeId, onNodeClick }) {
-  let nodesById = Object.fromEntries(nodes.map((node) => [node.id, node]))
-  let parallelGroups = groupParallelEdges(edges)
+  let layouts = layoutNodes(allNodes)
+  let parallelGroups = groupParallelEdges(allEdges)
+  let legend = legendLayout(diagram.legend)
 
   return (
     <svg
-      viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-      className="w-full rounded-md border-2 border-zinc-900 bg-white dark:border-zinc-100 dark:bg-zinc-900"
+      viewBox={`0 0 ${width} ${height}`}
+      role="img"
+      aria-label={diagram.alt || diagram.caption || 'Diagram'}
+      // font-sans is JetBrains Mono here, and pinning it on the <svg> keeps
+      // the diagram legible wherever it's rendered — `not-prose` strips the
+      // article's typography, and the studio preview has no page font at all.
+      // The text wrapping in diagramLayout assumes this monospace advance.
+      className="w-full rounded-md border-2 border-zinc-900 bg-white font-sans dark:border-zinc-100 dark:bg-zinc-900"
     >
       <defs>
         <marker
@@ -108,47 +115,73 @@ export function DiagramSvg({ nodes, edges, selectedNodeId, onNodeClick }) {
         </marker>
       </defs>
 
-      {edges.map((edge) => {
-        let fromNode = nodesById[edge.from]
-        let toNode = nodesById[edge.to]
-        if (!fromNode || !toNode) return null
+      {/* Panels first, so every node and edge draws on top of them. */}
+      {groups.map((group) => {
+        let { box, label } = groupLayout(group)
 
-        let { x1, y1, x2, y2 } = edgeEndpoints(fromNode, toNode)
+        return (
+          <g key={group.id}>
+            <rect
+              x={box.left}
+              y={box.top}
+              width={box.w}
+              height={box.h}
+              rx={8}
+              className="fill-none stroke-zinc-400 dark:stroke-zinc-600"
+              strokeWidth={1.5}
+              strokeDasharray="3 4"
+            />
+            {label && (
+              <text
+                x={label.x}
+                y={label.y}
+                className="fill-zinc-500 font-semibold uppercase tracking-wide dark:fill-zinc-400"
+                fontSize={FONT_SIZE.groupLabel}
+              >
+                {label.text}
+              </text>
+            )}
+          </g>
+        )
+      })}
 
-        // Fan out parallel edges (same node pair) perpendicular to the line.
+      {allEdges.map((edge) => {
+        let fromLayout = layouts[edge.from]
+        let toLayout = layouts[edge.to]
+        if (!fromLayout || !toLayout) return null
+
+        let geometry = edgeGeometry(fromLayout.box, toLayout.box, edge)
+
+        // Explicitly anchored edges are left exactly where the author put
+        // them; only the center-to-center ones get fanned apart.
         let group = parallelGroups[[edge.from, edge.to].sort().join('|')]
-        let indexInGroup = group.indexOf(edge.id)
-        let offset = (indexInGroup - (group.length - 1) / 2) * PARALLEL_EDGE_SPACING
-        if (offset !== 0) {
-          let length = Math.hypot(x2 - x1, y2 - y1) || 1
-          let perpX = (-(y2 - y1) / length) * offset
-          let perpY = ((x2 - x1) / length) * offset
-          x1 += perpX
-          y1 += perpY
-          x2 += perpX
-          y2 += perpY
-        }
+        let coords = geometry.explicit
+          ? geometry
+          : offsetPerpendicular(geometry, parallelOffset(group, edge.id))
 
-        let midX = (x1 + x2) / 2
-        let midY = (y1 + y2) / 2
+        let label = edge.label ? edgeLabelPosition(coords, edge) : null
+        let later = isLater(edge)
 
         return (
           <g key={edge.id}>
             <line
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
+              x1={coords.x1}
+              y1={coords.y1}
+              x2={coords.x2}
+              y2={coords.y2}
               className="stroke-zinc-500 dark:stroke-zinc-400"
               strokeWidth={2}
+              strokeDasharray={later ? DASH : undefined}
+              markerStart={edge.both ? 'url(#diagram-arrow)' : undefined}
               markerEnd="url(#diagram-arrow)"
             />
-            {edge.label && (
+            {label && (
               <text
-                x={midX}
-                y={midY - 6}
-                textAnchor="middle"
-                className="fill-zinc-600 text-[11px] dark:fill-zinc-300"
+                x={label.x}
+                y={label.y}
+                textAnchor={label.anchor}
+                className="fill-zinc-600 dark:fill-zinc-300"
+                fontSize={FONT_SIZE.edgeLabel}
               >
                 {edge.label}
               </text>
@@ -157,48 +190,136 @@ export function DiagramSvg({ nodes, edges, selectedNodeId, onNodeClick }) {
         )
       })}
 
-      {nodes.map((node) => {
+      {allNodes.map((node) => {
+        let layout = layouts[node.id]
+        let { box } = layout
         let isSelected = node.id === selectedNodeId
         let hasDetail = Boolean(node.detail)
-        let colors = NODE_COLORS[node.color] || NODE_COLORS.grey
+        let interactive = hasDetail && Boolean(onNodeClick)
+        let style = nodeStyle(node)
 
         return (
           <g
             key={node.id}
-            transform={`translate(${node.x - NODE_WIDTH / 2}, ${node.y - NODE_HEIGHT / 2})`}
-            onClick={() => onNodeClick?.(node)}
-            className={hasDetail && onNodeClick ? 'cursor-pointer' : undefined}
+            onClick={interactive ? () => onNodeClick(node) : undefined}
+            onKeyDown={
+              interactive
+                ? (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      onNodeClick(node)
+                    }
+                  }
+                : undefined
+            }
+            role={interactive ? 'button' : undefined}
+            tabIndex={interactive ? 0 : undefined}
+            aria-expanded={interactive ? isSelected : undefined}
+            className={interactive ? 'cursor-pointer focus:outline-none' : undefined}
           >
             {isSelected && (
               <rect
-                x={-4}
-                y={-4}
-                width={NODE_WIDTH + 8}
-                height={NODE_HEIGHT + 8}
+                x={box.left - 4}
+                y={box.top - 4}
+                width={box.w + 8}
+                height={box.h + 8}
                 rx={7}
                 className="fill-none stroke-blue-500"
                 strokeWidth={2}
               />
             )}
+
             <rect
-              width={NODE_WIDTH}
-              height={NODE_HEIGHT}
+              x={box.left}
+              y={box.top}
+              width={box.w}
+              height={box.h}
               rx={4}
-              className={`${colors.fill} stroke-zinc-900 dark:stroke-zinc-100`}
+              className={`${style.fill} stroke-zinc-900 dark:stroke-zinc-100`}
               strokeWidth={2}
+              strokeDasharray={isLater(node) ? DASH : undefined}
             />
-            <text
-              x={NODE_WIDTH / 2}
-              y={NODE_HEIGHT / 2}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              className={`${colors.text} text-[13px] font-medium`}
-            >
-              {node.label}
-            </text>
+
+            <NodeBody layout={layout} style={style} />
+
+            {layout.children.map((child) => (
+              <g key={child.key}>
+                <rect
+                  x={child.left}
+                  y={child.top}
+                  width={child.w}
+                  height={child.h}
+                  rx={4}
+                  className="fill-white stroke-zinc-900/60 dark:fill-zinc-900 dark:stroke-zinc-100/60"
+                  strokeWidth={1.5}
+                  strokeDasharray={isLater(child) ? INNER_DASH : undefined}
+                />
+                <text
+                  x={child.textX}
+                  y={child.textY}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className="fill-zinc-800 dark:fill-zinc-200"
+                  fontSize={FONT_SIZE.child}
+                >
+                  {child.label}
+                </text>
+              </g>
+            ))}
+
+            {/* Marks a box as having more behind a click. */}
+            {interactive && (
+              <circle
+                cx={box.left + box.w - 10}
+                cy={box.top + 10}
+                r={3}
+                className="fill-zinc-900/40 dark:fill-zinc-100/40"
+              />
+            )}
           </g>
         )
       })}
+
+      {legend && (
+        <g>
+          <rect
+            x={legend.box.left}
+            y={legend.box.top}
+            width={legend.box.w}
+            height={legend.box.h}
+            rx={6}
+            className="fill-white stroke-zinc-300 dark:fill-zinc-900 dark:stroke-zinc-700"
+            strokeWidth={1.5}
+          />
+          {legend.entries.map((entry) => (
+            <g key={entry.key}>
+              <rect
+                x={entry.swatchX}
+                y={entry.swatchY}
+                width={entry.swatchW}
+                height={entry.swatchH}
+                rx={3}
+                className={
+                  entry.role
+                    ? `${nodeStyle(entry).fill} stroke-zinc-900 dark:stroke-zinc-100`
+                    : 'fill-none stroke-zinc-500 dark:stroke-zinc-400'
+                }
+                strokeWidth={1.5}
+                strokeDasharray={entry.role ? undefined : DASH}
+              />
+              <text
+                x={entry.labelX}
+                y={entry.labelY}
+                dominantBaseline="middle"
+                className="fill-zinc-600 dark:fill-zinc-300"
+                fontSize={FONT_SIZE.legend}
+              >
+                {entry.label}
+              </text>
+            </g>
+          ))}
+        </g>
+      )}
     </svg>
   )
 }

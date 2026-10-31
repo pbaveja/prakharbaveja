@@ -19,9 +19,14 @@ import { DiagramSvg } from '@/components/DiagramSvg'
 //   JSX — Feature 1 never emits that tag).
 const previewComponents = {
   Diagram: (props) => (
-    <div className="not-prose my-6">
-      <DiagramSvg nodes={props.data?.nodes || []} edges={props.data?.edges || []} />
-    </div>
+    <figure className="not-prose my-6">
+      <DiagramSvg data={props.data || {}} />
+      {props.data?.caption && (
+        <figcaption className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+          {props.data.caption}
+        </figcaption>
+      )}
+    </figure>
   ),
   // eslint-disable-next-line @next/next/no-img-element
   Image: (props) => <img {...props} alt={props.alt || ''} />,

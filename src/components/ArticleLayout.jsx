@@ -7,8 +7,10 @@ import { AppContext } from '@/app/providers'
 import { ArticleStats, useArticlePageStats } from '@/components/ArticleStats'
 import { Comments } from '@/components/comments/Comments'
 import { Container } from '@/components/Container'
+import { JsonLd } from '@/components/JsonLd'
 import { Prose } from '@/components/Prose'
 import { formatDate } from '@/lib/formatDate'
+import { articleJsonLd } from '@/lib/jsonLd'
 
 function ArrowLeftIcon(props) {
   return (
@@ -40,6 +42,7 @@ export function ArticleLayout({ article, children }) {
 
   return (
     <Container className="mt-16 lg:mt-32">
+      {slug && <JsonLd data={articleJsonLd(article, slug)} />}
       <div className="xl:relative">
         <div className="mx-auto max-w-2xl">
           {previousPathname && (
@@ -63,7 +66,10 @@ export function ArticleLayout({ article, children }) {
                 {stats !== null && (
                   <>
                     <span aria-hidden="true">·</span>
-                    <ArticleStats stats={stats} showComments={commentMode !== 'off'} />
+                    <ArticleStats
+                      stats={stats}
+                      showComments={commentMode !== 'off'}
+                    />
                   </>
                 )}
               </div>
@@ -73,7 +79,11 @@ export function ArticleLayout({ article, children }) {
             </Prose>
           </article>
           {commentMode !== 'off' && slug && (
-            <Comments slug={slug} mode={commentMode} onCountChange={setCommentCount} />
+            <Comments
+              slug={slug}
+              mode={commentMode}
+              onCountChange={setCommentCount}
+            />
           )}
         </div>
       </div>

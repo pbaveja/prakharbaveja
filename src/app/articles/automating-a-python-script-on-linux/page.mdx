@@ -1,4 +1,5 @@
 import { ArticleLayout } from '@/components/ArticleLayout'
+import { articleMetadata } from '@/lib/articleMetadata'
 
 export const article = {
   author: 'Prakhar Baveja',
@@ -8,10 +9,7 @@ export const article = {
     'A detailed guide on how to automate the execution of Python scripts using cron jobs and nohup commands, aimed at simplifying automation processes for Linux users',
 }
 
-export const metadata = {
-  title: article.title,
-  description: article.description,
-}
+export const metadata = articleMetadata(article, "automating-a-python-script-on-linux")
 
 export default (props) => <ArticleLayout article={article} {...props} />
 

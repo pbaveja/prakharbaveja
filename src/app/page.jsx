@@ -5,11 +5,12 @@ import clsx from 'clsx'
 import { ArticleStats, ArticleStatsProvider } from '@/components/ArticleStats'
 import { Button } from '@/components/Button'
 import { Container } from '@/components/Container'
+import { JsonLd } from '@/components/JsonLd'
 import {
   GitHubIcon,
   LinkedInIcon,
   EmailIcon,
-  PhoneIcon
+  PhoneIcon,
 } from '@/components/SocialIcons'
 import logoGoogle from '@/images/logos/google.svg'
 import logoYourSpace from '@/images/logos/yourspace.png'
@@ -21,6 +22,8 @@ import logoTalentBrew from '@/images/logos/talentbrew.png'
 // import image4 from '@/images/photos/image-4.jpg'
 // import image5 from '@/images/photos/image-5.jpg'
 import { getAllArticles } from '@/lib/articles'
+import { siteJsonLd } from '@/lib/jsonLd'
+import { SITE_DESCRIPTION } from '@/lib/site'
 import { formatDate } from '@/lib/formatDate'
 
 function MailIcon(props) {
@@ -127,7 +130,7 @@ function ArticleRow({ article, index }) {
       >
         <span
           aria-hidden="true"
-          className="w-8 flex-none text-2xl font-extrabold leading-none tabular-nums text-zinc-300 transition group-hover:text-black dark:text-zinc-600 dark:group-hover:text-white"
+          className="w-8 flex-none text-2xl font-extrabold tabular-nums leading-none text-zinc-300 transition group-hover:text-black dark:text-zinc-600 dark:group-hover:text-white"
         >
           {String(index + 1).padStart(2, '0')}
         </span>
@@ -140,7 +143,10 @@ function ArticleRow({ article, index }) {
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
             <time dateTime={article.date}>{formatDate(article.date)}</time>
             <span aria-hidden="true">·</span>
-            <ArticleStats slug={article.slug} showComments={article.comments !== 'off'} />
+            <ArticleStats
+              slug={article.slug}
+              showComments={article.comments !== 'off'}
+            />
           </div>
         </div>
       </Link>
@@ -334,6 +340,7 @@ export default async function Home() {
 
   return (
     <>
+      <JsonLd data={siteJsonLd(SITE_DESCRIPTION)} />
       <Container className="mt-9">
         <div className="max-w-4xl">
           <h1 className="text-4xl font-extrabold tracking-tight text-black sm:text-5xl dark:text-white">
@@ -350,13 +357,13 @@ export default async function Home() {
               Welcome to my corner on the web.
             </p>
             <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-              This is where I write about the software I build, the bugs
-              that humble me, and what I learn along the way — mostly
-              it&apos;s the output of my brain working through side
-              projects, stray technical obsessions, and ideas that
-              wouldn&apos;t leave me alone, plus the occasional whimsical
-              detour into why the world works the way it does, and how much
-              of that comes down to the tech we built to get here.
+              This is where I write about the software I build, the bugs that
+              humble me, and what I learn along the way — mostly it&apos;s the
+              output of my brain working through side projects, stray technical
+              obsessions, and ideas that wouldn&apos;t leave me alone, plus the
+              occasional whimsical detour into why the world works the way it
+              does, and how much of that comes down to the tech we built to get
+              here.
             </p>
           </div>
           <div className="mt-6 flex gap-6">

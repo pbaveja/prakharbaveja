@@ -1,4 +1,5 @@
 import { ArticleLayout } from '@/components/ArticleLayout'
+import { articleMetadata } from '@/lib/articleMetadata'
 
 export const article = {
   author: "Prakhar Baveja",
@@ -7,10 +8,7 @@ export const article = {
   description: "Came across Jev while building an app and thought it might be a good fit. A gist of the learnings and the resultant change in approach.",
 }
 
-export const metadata = {
-  title: article.title,
-  description: article.description,
-}
+export const metadata = articleMetadata(article, "enter-jev-a-system-one-model")
 
 export default (props) => <ArticleLayout article={article} {...props} />
 

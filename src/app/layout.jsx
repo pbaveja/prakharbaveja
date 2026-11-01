@@ -2,7 +2,7 @@ import { JetBrains_Mono } from 'next/font/google'
 
 import { Providers } from '@/app/providers'
 import { Layout } from '@/components/Layout'
-import { SITE_URL } from '@/lib/site'
+import { SITE_DESCRIPTION, SITE_URL } from '@/lib/site'
 
 import '@/styles/tailwind.css'
 
@@ -12,8 +12,7 @@ const jetBrainsMono = JetBrains_Mono({
 })
 
 const title = 'Prakhar Baveja - Full Stack Software Engineer'
-const description =
-  'Here you can find some of my work with the technologies used to create them. Be it a SaaS, RESTful API or an elegant box-shadow, I can help you craft it!'
+const description = SITE_DESCRIPTION
 
 export const metadata = {
   // Lets every nested page express canonical/OG URLs as plain paths.

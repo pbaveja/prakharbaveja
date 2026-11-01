@@ -1,4 +1,5 @@
 import { ArticleLayout } from '@/components/ArticleLayout'
+import { articleMetadata } from '@/lib/articleMetadata'
 
 export const article = {
   author: "Prakhar Baveja",
@@ -7,10 +8,7 @@ export const article = {
   description: "Rules, similarity search, and an LLM can already handle most of the transaction parsing pipeline. Before adding an SLM, I want to measure exactly how much work is left for it to do.",
 }
 
-export const metadata = {
-  title: article.title,
-  description: article.description,
-}
+export const metadata = articleMetadata(article, "do-i-even-need-to-fine-tune-an-slm")
 
 export default (props) => <ArticleLayout article={article} {...props} />
 

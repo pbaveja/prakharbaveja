@@ -88,6 +88,7 @@ export async function PUT(request, { params }) {
     date,
     description,
     comments,
+    slug,
     body: resolvedBody,
   })
 

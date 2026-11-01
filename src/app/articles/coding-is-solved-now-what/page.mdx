@@ -1,4 +1,5 @@
 import { ArticleLayout } from '@/components/ArticleLayout'
+import { articleMetadata } from '@/lib/articleMetadata'
 
 export const article = {
   author: "Prakhar Baveja",
@@ -7,10 +8,7 @@ export const article = {
   description: "AI can write code and build things end-to-end. But knowing what to build, understanding how it works, and enjoying the process still matter. Some thoughts on this as I continue building in tech.",
 }
 
-export const metadata = {
-  title: article.title,
-  description: article.description,
-}
+export const metadata = articleMetadata(article, "coding-is-solved-now-what")
 
 export default (props) => <ArticleLayout article={article} {...props} />
 

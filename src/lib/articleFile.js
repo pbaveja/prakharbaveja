@@ -88,9 +88,10 @@ export function parseArticleFile(source) {
  * produce invalid JS no matter what characters the author typed into the
  * title/description fields.
  */
-export function buildArticleFile({ title, date, description, author, comments, body }) {
+export function buildArticleFile({ title, date, description, author, comments, body, slug }) {
   const header = [
     "import { ArticleLayout } from '@/components/ArticleLayout'",
+    "import { articleMetadata } from '@/lib/articleMetadata'",
     '',
     'export const article = {',
     `  author: ${JSON.stringify(author || 'Prakhar Baveja')},`,
@@ -101,10 +102,9 @@ export function buildArticleFile({ title, date, description, author, comments, b
     ...(comments && comments !== 'open' ? [`  comments: ${JSON.stringify(comments)},`] : []),
     '}',
     '',
-    'export const metadata = {',
-    '  title: article.title,',
-    '  description: article.description,',
-    '}',
+    // Canonical URL, Open Graph and Twitter tags all derive from this one
+    // call, so share previews can't drift from the article metadata above.
+    `export const metadata = articleMetadata(article, ${JSON.stringify(slug)})`,
     '',
     'export default (props) => <ArticleLayout article={article} {...props} />',
     '',

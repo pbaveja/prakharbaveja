@@ -1,4 +1,5 @@
 import { ArticleLayout } from '@/components/ArticleLayout'
+import { articleMetadata } from '@/lib/articleMetadata'
 
 export const article = {
   author: "Prakhar Baveja",
@@ -7,10 +8,7 @@ export const article = {
   description: "I'm building the finance app I actually want: one that understands my bank messages, keeps as much as possible on my phone, and gets smarter over time with a small language model.",
 }
 
-export const metadata = {
-  title: article.title,
-  description: article.description,
-}
+export const metadata = articleMetadata(article, "can-a-small-language-model-understand-my-bank-messages")
 
 export default (props) => <ArticleLayout article={article} {...props} />
 

@@ -97,7 +97,7 @@ crawlable. These are fabricated claims attributed to you on your own domain —
 a credibility problem before it's an SEO one. Delete them or gate them behind
 `noindex`; do **not** put them in the sitemap.
 
-**7. `/studio*` is indexable.**
+**7. `/studio*` is indexable.** — fixed
 The middleware redirects unauthenticated users to `/studio/login`, which returns
 200. Add `robots: { index: false }` to the studio segment and `Disallow: /studio`
 plus `Disallow: /api` in robots.txt.
@@ -109,20 +109,21 @@ alongside the real title. Verified: 4 `<h1>` tags on the live page. It reads as
 three enormous paragraphs and tells a crawler the page has four competing
 topics. Convert line 19 to body text and lines 21/23 to `##`.
 
-**9. No structured data.**
+**9. No structured data.** — fixed
 `BlogPosting` on articles and `Person` on the homepage. Cheap, and it's what
 feeds rich results and author attribution.
 
 ### P2 — nice to have
 
-**10. Weak `alt` text.** The only content image on the site is
+**10. Weak `alt` text.** — fixed The only content image on the site is
 `alt={"app-flow"}` ([page.mdx:157](../src/app/articles/can-a-small-language-model-understand-my-bank-messages/page.mdx)).
 Describe what the diagram shows.
 
-**11. Favicon declares `sizes="575x575"`.** Harmless but wrong. While you're
-there, add `apple-touch-icon` (180×180) and a `site.webmanifest`.
+**11. Favicon declares `sizes="575x575"`.** Harmless but wrong — Next derives
+it from the .ico, so it needs a re-cut source to change. The `apple-touch-icon`
+is added; a `site.webmanifest` is still missing.
 
-**12. Root description is stale.** "Be it a SaaS, RESTful API or an elegant
+**12. Root description is stale.** — fixed "Be it a SaaS, RESTful API or an elegant
 box-shadow" describes a freelance portfolio. The site is now a writing-first
 blog about building with AI, SLMs and side projects. The homepage copy already
 says this; the meta description hasn't caught up.
@@ -137,10 +138,11 @@ sitemap exists, feed it real `lastModified` values (git mtime is fine).
 Five new files, four small edits. Ordered so each step is independently
 shippable.
 
-> **Status, 2 Nov 2026:** steps 1-4 are **done** — see
-> [OG-IMAGE-CONCEPT.md](OG-IMAGE-CONCEPT.md) for the share cards — and the feed
-> is rewritten. Still open: JSON-LD (step 5), the rest of the content fixes
-> (step 6) and Search Console (step 7).
+> **Status, 2 Nov 2026:** steps 1-6 are **done** — see
+> [OG-IMAGE-CONCEPT.md](OG-IMAGE-CONCEPT.md) for the share cards. The only
+> things left are `/uses` and `/speaking` (deliberately deferred — they're out
+> of the sitemap meanwhile) and step 7, Search Console registration, which
+> can't be done from the repo.
 
 ### Step 1 — `metadataBase` + a single source of truth — done
 
@@ -228,13 +230,13 @@ Built as a route handler at `/og/articles/<slug>` rather than the
 static segments and would shadow it. Ten cards in all, prerendered at build
 time. Full write-up in [OG-IMAGE-CONCEPT.md](OG-IMAGE-CONCEPT.md).
 
-### Step 5 — structured data
+### Step 5 — structured data — done
 
 A `<script type="application/ld+json">` in `ArticleLayout` emitting
 `BlogPosting` (headline, datePublished, author, image, mainEntityOfPage), and
 `Person` + `WebSite` on the homepage. Server-rendered, no client JS.
 
-### Step 6 — content fixes
+### Step 6 — content fixes — done
 
 - ~~Rewrite the `feed.xml` author/description to you.~~ Done, and while in
   there: added `language`, a real channel image, per-item descriptions,
@@ -247,10 +249,12 @@ A `<script type="application/ld+json">` in `ArticleLayout` emitting
   `<h1>`. Two unrelated typos left alone in that file: "require" should be
   "requires" in the intro, and the second blockquote has a stray `> ` mid-line
   that renders literally.
-- Delete or `noindex` `/uses` and `/speaking`.
-- `noindex` the studio segment.
-- Real `alt` text on the Ginti cascade diagram.
-- `apple-touch-icon` + `site.webmanifest`, and drop the bogus favicon `sizes`.
+- Delete or `noindex` `/uses` and `/speaking`. **Still open**, by choice; they
+  are out of the sitemap in the meantime.
+- ~~`noindex` the studio segment.~~ Done.
+- ~~Real `alt` text on the Ginti cascade diagram.~~ Done.
+- ~~`apple-touch-icon`.~~ Done. `site.webmanifest` still missing, and the
+  favicon's bogus `sizes` needs a re-cut .ico to fix.
 
 ### Step 7 — verify
 
@@ -272,8 +276,8 @@ A `<script type="application/ld+json">` in `ArticleLayout` emitting
 | 2. robots + sitemap | done |
 | 3. shared article metadata helper | done |
 | 4. generated OG images | done |
-| 5. structured data | 45 min |
-| 6. content fixes | 1 hr |
+| 5. structured data | done |
+| 6. content fixes | done (except /uses, /speaking) |
 | 7. verification + Search Console | 30 min |
 
 Steps 1, 2 and 6 alone would close most of the gap and could ship today.

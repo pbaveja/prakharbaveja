@@ -16,11 +16,15 @@ export const metadata = {
 export default (props) => <ArticleLayout article={article} {...props} />
 
 
-# Every half decent application on the web require file uploading. And with data being more and more accessible plus internet speeds improving everywhere, reliable file upload should be a given. Yet, large files often get stuck due to network hiccups or internet issues. In this guide, I'll walk you through a simple and reliable way to upload large files in smaller chunks, making your file uploads more resilient against these common problems.
+Every half decent application on the web require file uploading. And with data being more and more accessible plus internet speeds improving everywhere, reliable file upload should be a given. Yet, large files often get stuck due to network hiccups or internet issues. In this guide, I'll walk you through a simple and reliable way to upload large files in smaller chunks, making your file uploads more resilient against these common problems.
 
-# Some assumptions: We're using **AWS S3**, and using the frontend to directly upload to S3 securely.
+## Some assumptions
 
-# How do we plan on doing this? S3 Multipart Uploads using presigned URLs
+We're using **AWS S3**, and using the frontend to directly upload to S3 securely.
+
+## How do we plan on doing this?
+
+S3 Multipart Uploads using presigned URLs
 
 > **Presigned URLs**: We can use presigned URLs to access S3 buckets securely without the need to share or store credentials in the calling application. In addition, presigned URLs are time-limited (the default is 15 minutes) to apply security best practices. [Read more here](https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html)
 

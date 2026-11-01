@@ -20,7 +20,12 @@ export function articleMetadata(article, slug) {
     description: article.description,
     alternates: { canonical: path },
     openGraph: {
+      // Next replaces the root layout's openGraph object wholesale rather than
+      // merging into it, so siteName and locale have to be repeated here or
+      // articles lose the attribution line that unfurls show above the title.
       type: 'article',
+      siteName: 'Prakhar Baveja',
+      locale: 'en_US',
       url: path,
       title: article.title,
       description: article.description,

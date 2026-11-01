@@ -9,6 +9,7 @@ import { Comments } from '@/components/comments/Comments'
 import { Container } from '@/components/Container'
 import { JsonLd } from '@/components/JsonLd'
 import { Prose } from '@/components/Prose'
+import { ShareArticle, ShareButton } from '@/components/ShareArticle'
 import { formatDate } from '@/lib/formatDate'
 import { articleJsonLd } from '@/lib/jsonLd'
 
@@ -72,12 +73,20 @@ export function ArticleLayout({ article, children }) {
                     />
                   </>
                 )}
+                {slug && (
+                  <ShareButton
+                    slug={slug}
+                    title={article.title}
+                    className="ml-auto"
+                  />
+                )}
               </div>
             </header>
             <Prose className="mt-8" data-mdx-content>
               {children}
             </Prose>
           </article>
+          {slug && <ShareArticle slug={slug} title={article.title} />}
           {commentMode !== 'off' && slug && (
             <Comments
               slug={slug}

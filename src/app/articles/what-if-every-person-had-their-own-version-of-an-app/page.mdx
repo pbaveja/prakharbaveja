@@ -1,0 +1,116 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+import { articleMetadata } from '@/lib/articleMetadata'
+
+export const article = {
+  author: "Prakhar Baveja",
+  date: "2026-11-20",
+  title: "What if every person had their own version of an app?",
+  description: "What started as a finance app built around my own bank messages has made me think about a different way of building software. What if AI could take a system and shape it around each individual, instead of making everyone use the same application?",
+}
+
+export const metadata = articleMetadata(article, "what-if-every-person-had-their-own-version-of-an-app")
+
+export default (props) => <ArticleLayout article={article} {...props} />
+
+What if we stopped building applications for users and started building applications for individuals?
+
+Sounds like a small distinction, but this could be the AI way in the future. Today, we build one application, make a bunch of assumptions about who will use it, add enough configuration options to accommodate different needs, and then distribute the same thing to everyone.
+
+But with AI, what if we could approach this very differently? What if we built a system that understands an individual and builds the software around them?
+
+> This would definitely require a rethink of the infrastructure available to an individual as well.
+
+I've been thinking about this while building Ginti.
+
+For the first couple of months, it was just me using Ginti and building it for me.
+
+And that made things quite easy. I had access to all the bank messages I needed, I knew what the transactions meant, and I could tell when something was being categorised incorrectly.
+
+I'd collected more than 10k bank messages from my phone, accumulated over several years. I had a labelled dataset, a working categorisation pipeline, and eventually an Android app that I started using every day.
+
+But then I opened it up for outside opinions through a small beta with friends.
+
+I knew that my parsers, built around my not-so-diverse collection of bank SMS messages, wouldn't work particularly well for everyone. A lot of transactions would end up in "Not Sorted". That was expected.
+
+I wanted to understand how people used the app, what they liked or didn't like, and get redacted reports of messages that the app couldn't parse.
+
+Every bank has its own templates, and even within the same bank, different transaction types can have different formats. It's a bit of a shit show, especially with Indian banks and their inability to stick to standardised formats.
+
+So, with Claude, I went down the rabbit hole. I scoured the internet for message samples, went through beta reports, added new parsers and improved existing ones. I also put together a database of publicly listed companies to help identify merchants and map them to the right names and categories.
+
+We've come a fair way with this, but it also made one thing quite apparent: maintaining this manually wasn't going to scale very well.
+
+Oh, and my redaction logic had a small hole in it.
+
+Claude got it horribly wrong in one instance, mistaking a UPI reference number for an Aadhaar number. The redaction logic wasn't accounting for that particular case.
+
+These things are way too important to get wrong, especially before opening the app up for general use. Thankfully, the report had reached only me, and the testers were people I knew and trusted.
+
+The current feedback loop is also quite manual. Someone uses the app, sends me a report, I look at the messages, write more parsers, ship another APK, and wait for them to try it again. It's useful, but it's slow. And more importantly, it doesn't give someone new a very good first experience.
+
+Now, that's where Gemini comes in.
+
+> Google has been releasing some incredible models. Check out the latest release at the time of writing: [Gemini 4 Neon.](https://blog.google/intl/en-in/products/introducing-gemini-4-neon/)
+
+The idea is to let Gemini read messages that the existing parsers can't understand, and eventually help generate new parsers from repeated examples.
+
+Of course, I don't want to blindly trust a model's output. Anything generated needs to be checked against real messages before it becomes part of the app.
+
+Jev will also continue to play a role in the classification side of things. I'm fairly confident that combining the two will get me somewhere. How exactly I'll make the whole process reliable is something I'll figure out as I go.
+
+## And then there's the iPhone question
+
+The most common question I get when showing Ginti to someone is whether there's an iPhone version.
+
+Unfortunately, the answer isn't as simple as building another app. The foundation of Ginti depends on reading bank SMS messages. Android allows this with the appropriate permissions, but iOS doesn't provide general-purpose access to a user's SMS inbox. So I can't just port the app and expect it to work.
+
+The alternative I can think of is email. Banks already send transaction emails, and I could potentially use Gmail's read-only access to read and process those.
+
+My gut feeling is that this won't be as reliable as SMS. Bank transaction emails aren't mandated in the same way yet, their formats can vary quite a bit, and not everyone has transaction emails coming into their registered email address.
+
+I haven't tried the Gmail approach yet, but I think it's time to experiment with it.
+
+And just while drafting these thoughts, I found a solid reason to do this sooner rather than later.
+
+## The RBI is changing things too
+
+I came across one complication while looking at the RBI's updated transaction alert requirements. And an email mandate from them!
+
+Starting 1 January 2027, banks will no longer be required to send SMS alerts for payments of ₹500 or less. Email alerts, however, will be mandatory for every transaction, provided the bank has an email address registered for the account.
+
+I went back to my own transaction history to see what this would mean in practice. More than 50% of my bank debits by count were ₹500 or less. In terms of total money, they accounted for less than 10%.
+
+A finance tracker that misses these transactions might still get your monthly spending roughly right, but it won't really feel like it understands your spending. Or does it really even matter?
+
+There are a couple of other things worth thinking about here.
+
+- Banks will likely start changing their message formats to accommodate the new requirements. This is where the learning loop, Gemini intelligence and the ability to add parsers become quite important.
+- Email becomes much more interesting because it's now the channel banks are required to use for every transaction, regardless of the amount.
+
+So the iPhone experiment is no longer just about supporting another platform. It could also become important for making sure Ginti doesn't miss a large chunk of everyday spending.
+
+I already have payment app notifications as another source of transactions, and the Gemini approach should help with changing message formats. But email integration and handling smaller payments are still things I need to work out.
+
+---
+
+## Coming to the slightly bigger thought
+
+There's something interesting I've been thinking about through all of this.
+
+Building something for yourself gives you a very convenient environment. You know the data, you know the edge cases, you know what you want, and you can fix things whenever they break.
+
+That is also where I think AI can really change how we build software.
+
+What if, instead of building an application for "users", we build a system that gets installed and then AI takes over the process of configuring it for each individual?
+
+I know what I want from a finance tracking app. But someone else might want completely different things. Different categories, different ways of looking at their spending, different rules, different integrations.
+
+Today, I'd have to account for all these possibilities while building one application that works for everyone. And this goes for all software being built for people.
+
+What if I put a, for a lack of a better word, **system** in place, and the LLM or something similar took over the configuration for each person? It could understand their data, figure out what they need, and build a custom experience around it. Over time, or maybe even immediately, it could build a custom experience for that person, harnessed by some prebuilt foundational configuration and structure already provided by someone like me.
+
+Instead of distributing the same app to thousands of people, I'm distributing a system that can create thousands of different versions of that app.
+
+This isn't practical just yet. We can't say what the limitations would be. But the more I build with AI, the more I find myself thinking about this approach.
+
+That's probably the future of building.
